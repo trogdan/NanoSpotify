@@ -14,6 +14,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+
+import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -33,6 +40,7 @@ public class MainActivityFragment extends Fragment {
 
     private final SpotifyApi m_spotifyApi = new SpotifyApi();
     private final SpotifyService m_spotifyService = m_spotifyApi.getService();
+    private ArtistAdapter m_artistAdapter;
 
     public MainActivityFragment() {
     }
@@ -48,7 +56,15 @@ public class MainActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        m_artistAdapter = new ArtistAdapter(new ArrayList<Artist>());
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        ListView artistListView;
+
+        artistListView = (ListView)rootView.findViewById(R.id.list_view_artists);
+        artistListView.setAdapter(m_artistAdapter);
+
+        return rootView;
     }
 
     @Override
@@ -68,6 +84,12 @@ public class MainActivityFragment extends Fragment {
                     @Override
                     public void success(ArtistsPager artistsPager, Response response) {
                         Log.d(LOG_TAG, "Artist success: " + artistsPager.artists.total);
+
+                        m_artistAdapter.clear();
+                        for(int i = 0; i < artistsPager.artists.items.size(); i++)
+                        {
+                            m_artistAdapter.add(artistsPager.artists.items.get(i));
+                        }
                     }
 
                     @Override
@@ -84,7 +106,36 @@ public class MainActivityFragment extends Fragment {
             }
         });
 
-        searchItem.setActionView(searchView);
+        MenuItemCompat.setActionView(searchItem, searchView);
     }
 
+    private class ArtistAdapter extends ArrayAdapter<Artist> {
+        private final String LOG_TAG = ArtistAdapter.class.getSimpleName();
+
+        public ArtistAdapter(ArrayList<Artist> items) {
+            super(getActivity(), 0, items);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = getActivity().getLayoutInflater()
+                        .inflate(R.layout.list_item_artist, parent, false);
+            }
+
+            Artist item = getItem(position);
+            ImageView imageView = (ImageView)convertView
+                    .findViewById(R.id.artist_icon);
+
+            //imageView.setImageResource(R.drawable.brian_up_close);
+
+            Log.d(LOG_TAG, "Loading picasso with uri " + item.uri + " and href " + item.href);
+            //Picasso.with(getActivity())
+            //        .load(item.href)
+            //        .noFade()
+            //        .into(imageView);
+
+            return convertView;
+        }
+    }
 }
