@@ -4,4 +4,5 @@
     <string name="action_search">Search</string>
     <string name="search_hint">Search Artists</string>
     <string name="artist_name">Artist Name</string>
+    <string name="artist_fail">No artists found</string>
 </resources>
