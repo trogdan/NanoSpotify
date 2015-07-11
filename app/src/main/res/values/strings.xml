@@ -5,4 +5,7 @@
     <string name="search_hint">Search Artists</string>
     <string name="artist_name">Artist Name</string>
     <string name="artist_fail">No artists found</string>
+    <string name="track_fail">No tracks found</string>
+    <string name="title_activity_track">Top 10 Tracks</string>
+    <string name="hello_world">Hello world!</string>
 </resources>

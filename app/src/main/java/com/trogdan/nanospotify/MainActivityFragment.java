@@ -1,7 +1,6 @@
 package com.trogdan.nanospotify;
 
-import android.app.SearchManager;
-import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 
@@ -14,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -60,12 +60,21 @@ public class MainActivityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         m_artistAdapter = new ArtistAdapter(new ArrayList<Artist>());
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        ListView artistListView;
-
-        artistListView = (ListView)rootView.findViewById(R.id.list_view_artists);
+        final ListView artistListView = (ListView)rootView.findViewById(R.id.list_view_artists);
         artistListView.setAdapter(m_artistAdapter);
+
+        artistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                final Artist artist = (Artist) parent.getItemAtPosition(position);
+
+                startActivity(new Intent(getActivity(),
+                        TrackActivity.class).putExtra(Intent.EXTRA_TEXT, artist.id));
+            }
+        });
 
         return rootView;
     }
@@ -76,8 +85,8 @@ public class MainActivityFragment extends Fragment {
         inflater.inflate(R.menu.mainfragment, menu);
 
         // Get the SearchView and set the searchable configuration
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        final MenuItem searchItem = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
 
         // implementing the listener
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -86,7 +95,7 @@ public class MainActivityFragment extends Fragment {
                 m_spotifyService.searchArtists(query, new Callback<ArtistsPager>() {
                     @Override
                     public void success(ArtistsPager artistsPager, Response response) {
-                        Log.d(LOG_TAG, "Artist success: " + artistsPager.artists.total);
+                        Log.d(LOG_TAG, "Artist query success: " + artistsPager.artists.total);
 
                         m_artistAdapter.clear();
                         for(int i = 0; i < artistsPager.artists.items.size(); i++)
@@ -95,13 +104,15 @@ public class MainActivityFragment extends Fragment {
                         }
                         if(artistsPager.artists.items.size() == 0)
                         {
-                            Toast.makeText(getActivity(), R.string.artist_fail, Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(),
+                                    R.string.artist_fail,
+                                    Toast.LENGTH_LONG).show();
                         }
                     }
 
                     @Override
                     public void failure(RetrofitError error) {
-                        Log.d(LOG_TAG, "Artist failure", error);
+                        Log.d(LOG_TAG, "Artist query failure", error);
                     }
                 });
                 return false;
@@ -129,13 +140,13 @@ public class MainActivityFragment extends Fragment {
 
             //Get the smallest image that is larger than the imageview in both dimensions
             //or the largest available
-            int width = view.getDrawable().getIntrinsicWidth();
-            int height = view.getDrawable().getIntrinsicHeight();
+            final int width = view.getDrawable().getIntrinsicWidth();
+            final int height = view.getDrawable().getIntrinsicHeight();
 
             //spotify api says largest first
             for(int i = artist.images.size()-1; i >= 0 ; i--)
             {
-                Image image = artist.images.get(i);
+                final Image image = artist.images.get(i);
                 if(image.width >= width && image.height >= height)
                     return image.url;
             }
@@ -150,11 +161,11 @@ public class MainActivityFragment extends Fragment {
                         .inflate(R.layout.list_item_artist, parent, false);
             }
 
-            Artist item = getItem(position);
-            ImageView imageView = (ImageView)convertView
+            final Artist item = getItem(position);
+            final ImageView imageView = (ImageView)convertView
                     .findViewById(R.id.artist_icon);
 
-            String imageUrl = getClosestImageUriBySize(item, imageView);
+            final String imageUrl = getClosestImageUriBySize(item, imageView);
 
             if(imageUrl != null)
             {
@@ -171,7 +182,7 @@ public class MainActivityFragment extends Fragment {
             else
                 imageView.setImageResource(R.mipmap.ic_launcher);
 
-            TextView textView = (TextView)convertView
+            final TextView textView = (TextView)convertView
                     .findViewById(R.id.artist_name_text);
             textView.setText(item.name);
 
