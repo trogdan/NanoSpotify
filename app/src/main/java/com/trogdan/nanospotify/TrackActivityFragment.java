@@ -25,18 +25,19 @@ import java.util.Map;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.AlbumSimple;
-import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
-import kaaes.spotify.webapi.android.models.TracksPager;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
 /**
- * A placeholder fragment containing a simple view.
+ * TrackActivityFragment is used to display the top 10 tracks of a selected artist.  Spotify api
+ * is passed through the Intent.EXTRA_TEXT.  Current mock-up uses album art on the left of the entry
+ * with album name and track name on the right of the entry, with track name given focus via font size
  */
 public class TrackActivityFragment extends Fragment {
 
@@ -59,6 +60,9 @@ public class TrackActivityFragment extends Fragment {
         final ListView trackListView = (ListView)rootView.findViewById(R.id.list_view_tracks);
         trackListView.setAdapter(m_trackAdapter);
 
+        /* Set the list item for a track to fire an intent to play the track of a selected
+           artist, passing the spotify ID of that track.
+         */
         trackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
@@ -76,9 +80,9 @@ public class TrackActivityFragment extends Fragment {
 
             /* Directions say to add country code to the query string, but i'm not using query
                string directly.  Instead use the spotify-api options.
-               In reality, to enforce locality
-               restrictions, this should not be hard-coded or a preference, but pulled from the
-               current location of the user.
+
+               In reality, to enforce locality restrictions, this should not be hard-coded or a
+               preference, but pulled from the current location of the user.
              */
             Map<String, Object> options = new HashMap<>();
             options.put(SpotifyService.COUNTRY,
@@ -87,6 +91,7 @@ public class TrackActivityFragment extends Fragment {
             options.put(SpotifyService.OFFSET, 0);
             options.put(SpotifyService.LIMIT, 10);
 
+            // Get the artist top 10 tracks
             m_spotifyService.getArtistTopTrack(artistID, options, new Callback<Tracks>() {
                 @Override
                 public void success(Tracks tracks, Response response) {
@@ -96,6 +101,8 @@ public class TrackActivityFragment extends Fragment {
                     for (int i = 0; i < tracks.tracks.size() ; i++) {
                         m_trackAdapter.add(tracks.tracks.get(i));
                     }
+
+                    // Again, not sure of decision to use toast, but display no results available
                     if (tracks.tracks.size() == 0) {
                         Toast.makeText(getActivity(),
                                 R.string.track_fail,
@@ -123,12 +130,12 @@ public class TrackActivityFragment extends Fragment {
         {
             if (album.images.size() == 0) return null;
 
-            //Get the smallest image that is larger than the imageview in both dimensions
-            //or the largest available
+            // Get the smallest image that is larger than the imageview in both dimensions
+            // or the largest available
             final int width = view.getDrawable().getIntrinsicWidth();
             final int height = view.getDrawable().getIntrinsicHeight();
 
-            //spotify api says largest first
+            // spotify api says largest first
             for(int i = album.images.size()-1; i >= 0 ; i--)
             {
                 final Image image = album.images.get(i);
@@ -145,13 +152,15 @@ public class TrackActivityFragment extends Fragment {
                 convertView = getActivity().getLayoutInflater()
                         .inflate(R.layout.list_item_track, parent, false);
             }
-
+            // Get the track being loaded for the listview
             final Track item = getItem(position);
             final ImageView imageView = (ImageView)convertView
                     .findViewById(R.id.album_icon);
 
+            // Find the right size image to load
             final String albumUrl = getClosestImageUriBySize(item.album, imageView);
 
+            // If an image is available load it
             if(albumUrl != null)
             {
                 Log.d(LOG_TAG, "Loading picasso with album uri " + albumUrl);
@@ -165,8 +174,10 @@ public class TrackActivityFragment extends Fragment {
                         .into(imageView);
             }
             else
+                // If no image, just use the default.  TODO switch with spotify logo or music icon?
                 imageView.setImageResource(R.mipmap.ic_launcher);
 
+            // Set texts
             final TextView albumTextView = (TextView)convertView
                     .findViewById(R.id.album_name_text);
             albumTextView.setText(item.album.name);

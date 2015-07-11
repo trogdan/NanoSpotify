@@ -1,5 +1,8 @@
 package com.trogdan.nanospotify;
 
+import android.app.Activity;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -35,7 +38,10 @@ import retrofit.client.Response;
 
 
 /**
- * A placeholder fragment containing a simple view.
+ * MainActivityFragment is used provide a search mechanism for artists, and display the results of
+ * an artist search.  Selection of an artist results in the firing of an explicit intent to display
+ * the top 10 tracks for a selected artist.  Artist results are display with an image of the artist
+ * on the left of a list entry, with artist name on the right of the list entry.
  */
 public class MainActivityFragment extends Fragment {
 
@@ -53,7 +59,6 @@ public class MainActivityFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
     }
 
     @Override
@@ -65,6 +70,9 @@ public class MainActivityFragment extends Fragment {
         final ListView artistListView = (ListView)rootView.findViewById(R.id.list_view_artists);
         artistListView.setAdapter(m_artistAdapter);
 
+        /* Set the list item for an artist to fire an intent to load the top 10 tracks of a selected
+           artist, passing the spotify ID of that artist.
+         */
         artistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
@@ -88,7 +96,10 @@ public class MainActivityFragment extends Fragment {
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
 
-        // implementing the listener
+        // Wanted to implement with <searchable>, but this seems to require making a searchable activity
+        searchView.setQueryHint(getString(R.string.search_hint));
+
+        // implementing the listener for the search view, which receives results from the spotifyService
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -97,11 +108,16 @@ public class MainActivityFragment extends Fragment {
                     public void success(ArtistsPager artistsPager, Response response) {
                         Log.d(LOG_TAG, "Artist query success: " + artistsPager.artists.total);
 
+                        // Populating the adapter with query results
                         m_artistAdapter.clear();
                         for(int i = 0; i < artistsPager.artists.items.size(); i++)
                         {
                             m_artistAdapter.add(artistsPager.artists.items.get(i));
                         }
+
+                        // Just display a toast that there were no results for the artist, per the
+                        // directions, although I feel a more prominent persistent result would
+                        // be more useful, in case the user doesn't see the toast.
                         if(artistsPager.artists.items.size() == 0)
                         {
                             Toast.makeText(getActivity(),
@@ -138,12 +154,13 @@ public class MainActivityFragment extends Fragment {
         {
             if (artist.images.size() == 0) return null;
 
-            //Get the smallest image that is larger than the imageview in both dimensions
-            //or the largest available
+            // Get the smallest image that is larger than the imageview in both dimensions
+            // or the largest available. No point using the 200px mentioned in the directions if
+            // the view is larger or smaller than that threshold
             final int width = view.getDrawable().getIntrinsicWidth();
             final int height = view.getDrawable().getIntrinsicHeight();
 
-            //spotify api says largest first
+            // spotify api says largest first
             for(int i = artist.images.size()-1; i >= 0 ; i--)
             {
                 final Image image = artist.images.get(i);
@@ -161,12 +178,15 @@ public class MainActivityFragment extends Fragment {
                         .inflate(R.layout.list_item_artist, parent, false);
             }
 
+            // Get the artist being loaded for the listview
             final Artist item = getItem(position);
             final ImageView imageView = (ImageView)convertView
                     .findViewById(R.id.artist_icon);
 
+            // Find the right size image to load
             final String imageUrl = getClosestImageUriBySize(item, imageView);
 
+            // If an image is available load it
             if(imageUrl != null)
             {
                 Log.d(LOG_TAG, "Loading picasso with uri " + imageUrl);
@@ -180,6 +200,7 @@ public class MainActivityFragment extends Fragment {
                         .into(imageView);
             }
             else
+                // If no image, just use the default.  TODO switch with spotify logo or music icon?
                 imageView.setImageResource(R.mipmap.ic_launcher);
 
             final TextView textView = (TextView)convertView
