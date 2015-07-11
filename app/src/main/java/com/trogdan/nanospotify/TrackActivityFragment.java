@@ -2,6 +2,7 @@ package com.trogdan.nanospotify;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
@@ -25,6 +26,7 @@ import java.util.Map;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.AlbumSimple;
+import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
@@ -41,11 +43,13 @@ import retrofit.client.Response;
 public class TrackActivityFragment extends Fragment {
 
     private final String LOG_TAG = TrackActivityFragment.class.getSimpleName();
+    private final String PREVIOUS_ARTIST_ID_TAG = "PreviousArtistId";
 
     private final SpotifyApi m_spotifyApi = new SpotifyApi();
     private final SpotifyService m_spotifyService = m_spotifyApi.getService();
-
     private TrackAdapter m_trackAdapter;
+    private FetchTracksTask m_fetchTracksTask;
+    private String m_previousArtistId;
 
     public TrackActivityFragment() {
     }
@@ -75,47 +79,31 @@ public class TrackActivityFragment extends Fragment {
 
         final Intent i = getActivity().getIntent();
         if( i != null && i.hasExtra(Intent.EXTRA_TEXT)) {
-            final String artistID = i.getStringExtra(Intent.EXTRA_TEXT);
-
-            /* Directions say to add country code to the query string, but i'm not using query
-               string directly.  Instead use the spotify-api options.
-
-               In reality, to enforce locality restrictions, this should not be hard-coded or a
-               preference, but pulled from the current location of the user.
-             */
-            Map<String, Object> options = new HashMap<>();
-            options.put(SpotifyService.COUNTRY,
-                    ((TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE))
-                        .getSimCountryIso().toUpperCase());
-            options.put(SpotifyService.OFFSET, 0);
-            options.put(SpotifyService.LIMIT, 10);
-
-            // Get the artist top 10 tracks
-            m_spotifyService.getArtistTopTrack(artistID, options, new Callback<Tracks>() {
-                @Override
-                public void success(Tracks tracks, Response response) {
-                    Log.d(LOG_TAG, "Track query success: " + tracks.tracks.size());
-
-                    m_trackAdapter.clear();
-                    for (int i = 0; i < tracks.tracks.size() ; i++) {
-                        m_trackAdapter.add(tracks.tracks.get(i));
-                    }
-
-                    // Again, not sure of decision to use toast, but display no results available
-                    if (tracks.tracks.size() == 0) {
-                        Toast.makeText(getActivity(),
-                                R.string.track_fail,
-                                Toast.LENGTH_LONG).show();
-                    }
-                }
-
-                @Override
-                public void failure(RetrofitError error) {
-                    Log.d(LOG_TAG, "Track query failure", error);
-                }
-            });
+            m_previousArtistId = i.getStringExtra(Intent.EXTRA_TEXT);
         }
+        else if(savedInstanceState != null) {
+            m_previousArtistId = savedInstanceState.getString(PREVIOUS_ARTIST_ID_TAG);
+        }
+
+        getTracks(m_previousArtistId);
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        // Save UI state changes to the savedInstanceState.
+        // This bundle will be passed to onCreate if the process is
+        // killed and restarted.
+        if(m_previousArtistId != null)
+            savedInstanceState.putString(PREVIOUS_ARTIST_ID_TAG, m_previousArtistId);
+    }
+
+    public void getTracks(String artistId) {
+        if(artistId != null) {
+            m_fetchTracksTask = new FetchTracksTask();
+            m_fetchTracksTask.execute(artistId);
+        }
     }
 
     private class TrackAdapter extends ArrayAdapter<Track> {
@@ -185,6 +173,62 @@ public class TrackActivityFragment extends Fragment {
             trackTextView.setText(item.name);
 
             return convertView;
+        }
+    }
+
+    public class FetchTracksTask extends AsyncTask<String, Void, Void> {
+        private final String LOG_TAG = FetchTracksTask.class.getSimpleName();
+
+        // Retrofit callbacks are performed on main UI thread, so no onPostExecute
+        // needed.
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            if (params.length != 1) {
+                Log.e(LOG_TAG, "Invalid params passed to doInBackground");
+                return null;
+            }
+
+            /* Directions say to add country code to the query string, but i'm not using query
+               string directly.  Instead use the spotify-api options.
+
+               In reality, to enforce locality restrictions, this should not be hard-coded or a
+               preference, but pulled from the current location of the user.
+             */
+            Map<String, Object> options = new HashMap<>();
+            options.put(SpotifyService.COUNTRY,
+                    ((TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE))
+                            .getSimCountryIso().toUpperCase());
+            options.put(SpotifyService.OFFSET, 0);
+            options.put(SpotifyService.LIMIT, 10);
+
+            // Get the artist top 10 tracks
+            m_spotifyService.getArtistTopTrack(params[0], options, new Callback<Tracks>() {
+                @Override
+                public void success(Tracks tracks, Response response) {
+                    Log.d(LOG_TAG, "Track query success: " + tracks.tracks.size());
+
+                    m_trackAdapter.clear();
+                    for (int i = 0; i < tracks.tracks.size(); i++) {
+                        m_trackAdapter.add(tracks.tracks.get(i));
+                    }
+
+                    // Again, not sure of decision to use toast, but display no results available
+                    if (tracks.tracks.size() == 0) {
+                        Toast.makeText(getActivity(),
+                                R.string.track_fail,
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Log.d(LOG_TAG, "Track query failure", error);
+                }
+            });
+
+            return null;
         }
     }
 }

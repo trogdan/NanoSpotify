@@ -1,6 +1,8 @@
 package com.trogdan.nanospotify;
 
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 
@@ -43,10 +45,13 @@ import retrofit.client.Response;
 public class MainActivityFragment extends Fragment {
 
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
+    private final String PREVIOUS_ARTIST_TAG = "PreviousArtist";
 
     private final SpotifyApi m_spotifyApi = new SpotifyApi();
     private final SpotifyService m_spotifyService = m_spotifyApi.getService();
     private ArtistAdapter m_artistAdapter;
+    private String m_previousArtist;
+    private FetchArtistsTask m_fetchArtistsTask;
 
     public MainActivityFragment() {
     }
@@ -55,6 +60,9 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null) {
+            m_previousArtist = savedInstanceState.getString(PREVIOUS_ARTIST_TAG);
+        }
         setHasOptionsMenu(true);
     }
 
@@ -64,7 +72,7 @@ public class MainActivityFragment extends Fragment {
         m_artistAdapter = new ArtistAdapter(new ArrayList<Artist>());
         final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        final ListView artistListView = (ListView)rootView.findViewById(R.id.list_view_artists);
+        final ListView artistListView = (ListView) rootView.findViewById(R.id.list_view_artists);
         artistListView.setAdapter(m_artistAdapter);
 
         /* Set the list item for an artist to fire an intent to load the top 10 tracks of a selected
@@ -100,34 +108,8 @@ public class MainActivityFragment extends Fragment {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                m_spotifyService.searchArtists(query, new Callback<ArtistsPager>() {
-                    @Override
-                    public void success(ArtistsPager artistsPager, Response response) {
-                        Log.d(LOG_TAG, "Artist query success: " + artistsPager.artists.total);
-
-                        // Populating the adapter with query results
-                        m_artistAdapter.clear();
-                        for(int i = 0; i < artistsPager.artists.items.size(); i++)
-                        {
-                            m_artistAdapter.add(artistsPager.artists.items.get(i));
-                        }
-
-                        // Just display a toast that there were no results for the artist, per the
-                        // directions, although I feel a more prominent persistent result would
-                        // be more useful, in case the user doesn't see the toast.
-                        if(artistsPager.artists.items.size() == 0)
-                        {
-                            Toast.makeText(getActivity(),
-                                    R.string.artist_fail,
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    }
-
-                    @Override
-                    public void failure(RetrofitError error) {
-                        Log.d(LOG_TAG, "Artist query failure", error);
-                    }
-                });
+                m_previousArtist = query;
+                getArtists(query);
                 return false;
             }
 
@@ -140,6 +122,29 @@ public class MainActivityFragment extends Fragment {
         MenuItemCompat.setActionView(searchItem, searchView);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        // Save UI state changes to the savedInstanceState.
+        // This bundle will be passed to onCreate if the process is
+        // killed and restarted.
+        if(m_previousArtist != null)
+            savedInstanceState.putString(PREVIOUS_ARTIST_TAG, m_previousArtist);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        getArtists(m_previousArtist);
+    }
+
+    public void getArtists(String artist) {
+        if(artist != null) {
+            m_fetchArtistsTask = new FetchArtistsTask();
+            m_fetchArtistsTask.execute(artist);
+        }
+    }
+
     private class ArtistAdapter extends ArrayAdapter<Artist> {
         private final String LOG_TAG = ArtistAdapter.class.getSimpleName();
 
@@ -147,8 +152,7 @@ public class MainActivityFragment extends Fragment {
             super(getActivity(), 0, items);
         }
 
-        private String getClosestImageUriBySize(Artist artist, ImageView view)
-        {
+        private String getClosestImageUriBySize(Artist artist, ImageView view) {
             if (artist.images.size() == 0) return null;
 
             // Get the smallest image that is larger than the imageview in both dimensions
@@ -158,10 +162,9 @@ public class MainActivityFragment extends Fragment {
             final int height = view.getDrawable().getIntrinsicHeight();
 
             // spotify api says largest first
-            for(int i = artist.images.size()-1; i >= 0 ; i--)
-            {
+            for (int i = artist.images.size() - 1; i >= 0; i--) {
                 final Image image = artist.images.get(i);
-                if(image.width >= width && image.height >= height)
+                if (image.width >= width && image.height >= height)
                     return image.url;
             }
 
@@ -177,15 +180,14 @@ public class MainActivityFragment extends Fragment {
 
             // Get the artist being loaded for the listview
             final Artist item = getItem(position);
-            final ImageView imageView = (ImageView)convertView
+            final ImageView imageView = (ImageView) convertView
                     .findViewById(R.id.artist_icon);
 
             // Find the right size image to load
             final String imageUrl = getClosestImageUriBySize(item, imageView);
 
             // If an image is available load it
-            if(imageUrl != null)
-            {
+            if (imageUrl != null) {
                 Log.d(LOG_TAG, "Loading picasso with uri " + imageUrl);
 
                 Picasso.with(getActivity())
@@ -195,17 +197,61 @@ public class MainActivityFragment extends Fragment {
                         .fit()
                         .centerInside()
                         .into(imageView);
-            }
-            else {
+            } else {
                 // If no image, just use the default.
                 imageView.setImageResource(R.mipmap.ic_artist_icon);
             }
 
-            final TextView textView = (TextView)convertView
+            final TextView textView = (TextView) convertView
                     .findViewById(R.id.artist_name_text);
             textView.setText(item.name);
 
             return convertView;
+        }
+    }
+
+    public class FetchArtistsTask extends AsyncTask<String, Void, Void> {
+        private final String LOG_TAG = FetchArtistsTask.class.getSimpleName();
+
+        // Retrofit callbacks are performed on main UI thread, so no onPostExecute
+        // needed.
+
+        @Override
+        protected Void doInBackground(String... params) {
+
+            if (params.length != 1) {
+                Log.e(LOG_TAG, "Invalid params passed to doInBackground");
+                return null;
+            }
+
+            m_spotifyService.searchArtists(params[0], new Callback<ArtistsPager>() {
+                @Override
+                public void success(ArtistsPager artistsPager, Response response) {
+                    Log.d(LOG_TAG, "Artist query success: " + artistsPager.artists.total);
+
+                    // Populating the adapter with query results.
+                    m_artistAdapter.clear();
+                    for (int i = 0; i < artistsPager.artists.items.size(); i++) {
+                        m_artistAdapter.add(artistsPager.artists.items.get(i));
+                    }
+
+                    // Just display a toast that there were no results for the artist, per the
+                    // directions, although I feel a more prominent persistent result would
+                    // be more useful, in case the user doesn't see the toast.
+                    if (artistsPager.artists.items.size() == 0) {
+                        Toast.makeText(getActivity(),
+                                R.string.artist_fail,
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Log.d(LOG_TAG, "Artist query failure", error);
+                }
+            });
+
+            return null;
         }
     }
 }
