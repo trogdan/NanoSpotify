@@ -1,8 +1,10 @@
 package com.trogdan.nanospotify;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -72,8 +74,16 @@ public class TrackActivityFragment extends Fragment {
         if( i != null && i.hasExtra(Intent.EXTRA_TEXT)) {
             final String artistID = i.getStringExtra(Intent.EXTRA_TEXT);
 
+            /* Directions say to add country code to the query string, but i'm not using query
+               string directly.  Instead use the spotify-api options.
+               In reality, to enforce locality
+               restrictions, this should not be hard-coded or a preference, but pulled from the
+               current location of the user.
+             */
             Map<String, Object> options = new HashMap<>();
-            options.put(SpotifyService.COUNTRY, "US");
+            options.put(SpotifyService.COUNTRY,
+                    ((TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE))
+                        .getSimCountryIso().toUpperCase());
             options.put(SpotifyService.OFFSET, 0);
             options.put(SpotifyService.LIMIT, 10);
 
