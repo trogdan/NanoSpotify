@@ -22,6 +22,10 @@
         <activity
             android:name=".TrackActivity"
             android:label="@string/title_activity_track" >
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.trogdan.nanospotify.MainActivity" />
         </activity>
     </application>
 
