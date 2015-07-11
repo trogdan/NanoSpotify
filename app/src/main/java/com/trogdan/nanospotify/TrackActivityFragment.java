@@ -167,16 +167,16 @@ public class TrackActivityFragment extends Fragment {
 
                 Picasso.with(getActivity())
                         .load(albumUrl)
-                        .placeholder(R.mipmap.ic_launcher)
+                        .placeholder(R.mipmap.ic_track_icon)
                         .noFade()
                         .fit()
                         .centerInside()
                         .into(imageView);
             }
-            else
-                // If no image, just use the default.  TODO switch with spotify logo or music icon?
-                imageView.setImageResource(R.mipmap.ic_launcher);
-
+            else {
+                // If no image, just use the default.
+                imageView.setImageResource(R.mipmap.ic_track_icon);
+            }
             // Set texts
             final TextView albumTextView = (TextView)convertView
                     .findViewById(R.id.album_name_text);
