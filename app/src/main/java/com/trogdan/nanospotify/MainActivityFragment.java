@@ -130,6 +130,7 @@ public class MainActivityFragment extends Fragment {
     private class ArtistAdapter extends ArrayAdapter<Artist> {
         private final String LOG_TAG = ArtistAdapter.class.getSimpleName();
 
+        private ViewHolder viewHolder;
         public ArtistAdapter(ArrayList<Artist> items) {
             super(getActivity(), 0, items);
         }
@@ -158,15 +159,18 @@ public class MainActivityFragment extends Fragment {
             if (convertView == null) {
                 convertView = getActivity().getLayoutInflater()
                         .inflate(R.layout.list_item_artist, parent, false);
+                viewHolder = new ViewHolder();
+                viewHolder.imageView = (ImageView) convertView
+                        .findViewById(R.id.artist_icon);
+                viewHolder.textView = (TextView) convertView
+                        .findViewById(R.id.artist_name_text);
             }
 
             // Get the artist being loaded for the listview
             final Artist item = getItem(position);
-            final ImageView imageView = (ImageView) convertView
-                    .findViewById(R.id.artist_icon);
 
             // Find the right size image to load
-            final String imageUrl = getClosestImageUriBySize(item, imageView);
+            final String imageUrl = getClosestImageUriBySize(item, viewHolder.imageView);
 
             // If an image is available load it
             if (imageUrl != null) {
@@ -178,17 +182,22 @@ public class MainActivityFragment extends Fragment {
                         .noFade()
                         .fit()
                         .centerInside()
-                        .into(imageView);
+                        .into(viewHolder.imageView);
             } else {
                 // If no image, just use the default.
-                imageView.setImageResource(R.mipmap.ic_artist_icon);
+                viewHolder.imageView.setImageResource(R.mipmap.ic_artist_icon);
             }
 
-            final TextView textView = (TextView) convertView
+            viewHolder.textView = (TextView) convertView
                     .findViewById(R.id.artist_name_text);
-            textView.setText(item.name);
+            viewHolder.textView.setText(item.name);
 
             return convertView;
+        }
+
+        private class ViewHolder {
+            ImageView imageView;
+            TextView textView;
         }
     }
 
@@ -235,5 +244,6 @@ public class MainActivityFragment extends Fragment {
 
             return null;
         }
+
     }
 }

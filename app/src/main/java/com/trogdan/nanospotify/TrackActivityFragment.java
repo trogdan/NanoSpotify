@@ -93,6 +93,7 @@ public class TrackActivityFragment extends Fragment {
     private class TrackAdapter extends ArrayAdapter<Track> {
         private final String LOG_TAG = TrackAdapter.class.getSimpleName();
 
+        private ViewHolder viewHolder;
         public TrackAdapter(ArrayList<Track> items) {
             super(getActivity(), 0, items);
         }
@@ -122,14 +123,19 @@ public class TrackActivityFragment extends Fragment {
             if (convertView == null) {
                 convertView = getActivity().getLayoutInflater()
                         .inflate(R.layout.list_item_track, parent, false);
+                viewHolder = new ViewHolder();
+                viewHolder.imageView = (ImageView)convertView
+                        .findViewById(R.id.album_icon);
+                viewHolder.albumTextView = (TextView)convertView
+                        .findViewById(R.id.album_name_text);
+                viewHolder.trackTextView = (TextView)convertView
+                        .findViewById(R.id.track_name_text);
             }
             // Get the track being loaded for the listview
             final Track item = getItem(position);
-            final ImageView imageView = (ImageView)convertView
-                    .findViewById(R.id.album_icon);
 
             // Find the right size image to load
-            final String albumUrl = getClosestImageUriBySize(item.album, imageView);
+            final String albumUrl = getClosestImageUriBySize(item.album, viewHolder.imageView);
 
             // If an image is available load it
             if(albumUrl != null)
@@ -142,21 +148,23 @@ public class TrackActivityFragment extends Fragment {
                         .noFade()
                         .fit()
                         .centerInside()
-                        .into(imageView);
+                        .into(viewHolder.imageView);
             }
             else {
                 // If no image, just use the default.
-                imageView.setImageResource(R.mipmap.ic_track_icon);
+                viewHolder.imageView.setImageResource(R.mipmap.ic_track_icon);
             }
             // Set texts
-            final TextView albumTextView = (TextView)convertView
-                    .findViewById(R.id.album_name_text);
-            albumTextView.setText(item.album.name);
-            final TextView trackTextView = (TextView)convertView
-                    .findViewById(R.id.track_name_text);
-            trackTextView.setText(item.name);
+            viewHolder.albumTextView.setText(item.album.name);
+            viewHolder.trackTextView.setText(item.name);
 
             return convertView;
+        }
+
+        private class ViewHolder {
+            ImageView imageView;
+            TextView albumTextView;
+            TextView trackTextView;
         }
     }
 
