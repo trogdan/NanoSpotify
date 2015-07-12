@@ -43,6 +43,7 @@ public class MainActivityFragment extends Fragment {
     private final SpotifyService m_spotifyService = m_spotifyApi.getService();
     private ArtistAdapter m_artistAdapter;
     private FetchArtistsTask m_fetchArtistsTask;
+    private String m_previousArtist;
 
     public MainActivityFragment() {
     }
@@ -115,9 +116,11 @@ public class MainActivityFragment extends Fragment {
     }
 
     public void getArtists(String artist) {
-        if (artist != null) {
+        // No point spinning up a new query if it's a repeat
+        if (artist != null && !artist.equals(m_previousArtist)) {
             m_fetchArtistsTask = new FetchArtistsTask();
             m_fetchArtistsTask.execute(artist);
+            m_previousArtist = artist;
         }
     }
 
