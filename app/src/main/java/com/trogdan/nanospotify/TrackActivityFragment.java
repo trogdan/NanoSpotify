@@ -43,13 +43,11 @@ import retrofit.client.Response;
 public class TrackActivityFragment extends Fragment {
 
     private final String LOG_TAG = TrackActivityFragment.class.getSimpleName();
-    private final String PREVIOUS_ARTIST_ID_TAG = "PreviousArtistId";
 
     private final SpotifyApi m_spotifyApi = new SpotifyApi();
     private final SpotifyService m_spotifyService = m_spotifyApi.getService();
     private TrackAdapter m_trackAdapter;
     private FetchTracksTask m_fetchTracksTask;
-    private String m_previousArtistId;
 
     public TrackActivityFragment() {
     }
@@ -79,24 +77,10 @@ public class TrackActivityFragment extends Fragment {
 
         final Intent i = getActivity().getIntent();
         if( i != null && i.hasExtra(Intent.EXTRA_TEXT)) {
-            m_previousArtistId = i.getStringExtra(Intent.EXTRA_TEXT);
-        }
-        else if(savedInstanceState != null) {
-            m_previousArtistId = savedInstanceState.getString(PREVIOUS_ARTIST_ID_TAG);
+            getTracks(i.getStringExtra(Intent.EXTRA_TEXT));
         }
 
-        getTracks(m_previousArtistId);
         return rootView;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        // Save UI state changes to the savedInstanceState.
-        // This bundle will be passed to onCreate if the process is
-        // killed and restarted.
-        if(m_previousArtistId != null)
-            savedInstanceState.putString(PREVIOUS_ARTIST_ID_TAG, m_previousArtistId);
     }
 
     public void getTracks(String artistId) {

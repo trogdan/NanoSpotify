@@ -2,7 +2,6 @@ package com.trogdan.nanospotify;
 
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 
@@ -45,12 +44,10 @@ import retrofit.client.Response;
 public class MainActivityFragment extends Fragment {
 
     private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
-    private final String PREVIOUS_ARTIST_TAG = "PreviousArtist";
 
     private final SpotifyApi m_spotifyApi = new SpotifyApi();
     private final SpotifyService m_spotifyService = m_spotifyApi.getService();
     private ArtistAdapter m_artistAdapter;
-    private String m_previousArtist;
     private FetchArtistsTask m_fetchArtistsTask;
 
     public MainActivityFragment() {
@@ -60,9 +57,6 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(savedInstanceState != null) {
-            m_previousArtist = savedInstanceState.getString(PREVIOUS_ARTIST_TAG);
-        }
         setHasOptionsMenu(true);
     }
 
@@ -108,7 +102,6 @@ public class MainActivityFragment extends Fragment {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                m_previousArtist = query;
                 getArtists(query);
                 return false;
             }
@@ -123,23 +116,12 @@ public class MainActivityFragment extends Fragment {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        // Save UI state changes to the savedInstanceState.
-        // This bundle will be passed to onCreate if the process is
-        // killed and restarted.
-        if(m_previousArtist != null)
-            savedInstanceState.putString(PREVIOUS_ARTIST_TAG, m_previousArtist);
-    }
-
-    @Override
     public void onStart() {
         super.onStart();
-        getArtists(m_previousArtist);
     }
 
     public void getArtists(String artist) {
-        if(artist != null) {
+        if (artist != null) {
             m_fetchArtistsTask = new FetchArtistsTask();
             m_fetchArtistsTask.execute(artist);
         }
