@@ -11,13 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,9 +20,6 @@ import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.AlbumSimple;
-import kaaes.spotify.webapi.android.models.ArtistsPager;
-import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 import retrofit.Callback;
@@ -55,7 +47,7 @@ public class TrackActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        m_trackAdapter = new TrackAdapter(new ArrayList<Track>());
+        m_trackAdapter = new TrackAdapter(this, new ArrayList<Track>());
         final View rootView = inflater.inflate(R.layout.fragment_track, container, false);
 
         final ListView trackListView = (ListView)rootView.findViewById(R.id.list_view_tracks);
@@ -87,84 +79,6 @@ public class TrackActivityFragment extends Fragment {
         if(artistId != null) {
             m_fetchTracksTask = new FetchTracksTask();
             m_fetchTracksTask.execute(artistId);
-        }
-    }
-
-    private class TrackAdapter extends ArrayAdapter<Track> {
-        private final String LOG_TAG = TrackAdapter.class.getSimpleName();
-
-        private ViewHolder viewHolder;
-        public TrackAdapter(ArrayList<Track> items) {
-            super(getActivity(), 0, items);
-        }
-
-        private String getClosestImageUriBySize(AlbumSimple album, ImageView view)
-        {
-            if (album.images.size() == 0) return null;
-
-            // Get the smallest image that is larger than the imageview in both dimensions
-            // or the largest available
-            final int width = view.getDrawable().getIntrinsicWidth();
-            final int height = view.getDrawable().getIntrinsicHeight();
-
-            // spotify api says largest first
-            for(int i = album.images.size()-1; i >= 0 ; i--)
-            {
-                final Image image = album.images.get(i);
-                if(image.width >= width && image.height >= height)
-                    return image.url;
-            }
-
-            return album.images.get(0).url;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = getActivity().getLayoutInflater()
-                        .inflate(R.layout.list_item_track, parent, false);
-                viewHolder = new ViewHolder();
-                viewHolder.imageView = (ImageView)convertView
-                        .findViewById(R.id.album_icon);
-                viewHolder.albumTextView = (TextView)convertView
-                        .findViewById(R.id.album_name_text);
-                viewHolder.trackTextView = (TextView)convertView
-                        .findViewById(R.id.track_name_text);
-            }
-            // Get the track being loaded for the listview
-            final Track item = getItem(position);
-
-            // Find the right size image to load
-            final String albumUrl = getClosestImageUriBySize(item.album, viewHolder.imageView);
-
-            // If an image is available load it
-            if(albumUrl != null)
-            {
-                Log.d(LOG_TAG, "Loading picasso with album uri " + albumUrl);
-
-                Picasso.with(getActivity())
-                        .load(albumUrl)
-                        .placeholder(R.mipmap.ic_track_icon)
-                        .noFade()
-                        .fit()
-                        .centerInside()
-                        .into(viewHolder.imageView);
-            }
-            else {
-                // If no image, just use the default.
-                viewHolder.imageView.setImageResource(R.mipmap.ic_track_icon);
-            }
-            // Set texts
-            viewHolder.albumTextView.setText(item.album.name);
-            viewHolder.trackTextView.setText(item.name);
-
-            return convertView;
-        }
-
-        private class ViewHolder {
-            ImageView imageView;
-            TextView albumTextView;
-            TextView trackTextView;
         }
     }
 
