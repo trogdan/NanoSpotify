@@ -1,8 +1,12 @@
+
 <resources>
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
     </style>
+
+    <!-- Key name for storing previous query in SharedPreferences [CHAR LIMIT=NONE] -->
+    <string name="pref_last_query_key" translatable="false">location</string>
 
 </resources>

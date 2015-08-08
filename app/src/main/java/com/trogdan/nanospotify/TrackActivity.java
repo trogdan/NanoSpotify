@@ -1,5 +1,6 @@
 package com.trogdan.nanospotify;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,6 +13,22 @@ public class TrackActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
+
+        if (savedInstanceState == null) {
+            final TrackActivityFragment fragment = new TrackActivityFragment();
+
+            final Intent i = getIntent();
+            if( i != null && i.hasExtra(Intent.EXTRA_TEXT)) {
+                // TODO, better way then forwarding an intent EXTRA?
+                Bundle args = new Bundle();
+                args.putString(TrackActivityFragment.TRACKQUERY_ARG, i.getStringExtra(Intent.EXTRA_TEXT));
+                fragment.setArguments(args);
+            }
+
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.track_container, fragment)
+                    .commit();
+        }
     }
 
 

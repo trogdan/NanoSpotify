@@ -62,7 +62,6 @@ class TrackAdapter extends ArrayAdapter<Track> {
                     .findViewById(R.id.track_name_text);
             view.setTag(viewHolder);
         } else {
-            Log.d(LOG_TAG, "Hey benefit!");
             viewHolder = (ViewHolder) view.getTag();
         }
 
@@ -74,9 +73,12 @@ class TrackAdapter extends ArrayAdapter<Track> {
 
         viewHolder.imageView.setImageBitmap(null);
 
-//        if (albumUrl != null) {
-//            Log.d(LOG_TAG, "Loading picasso with album uri " + albumUrl);
-//        }
+        if (albumUrl != null) {
+            Log.d(LOG_TAG, "Loading picasso with album uri " + albumUrl + " for position " + Integer.toString(position));
+        }
+        else  {
+            Log.d(LOG_TAG, "No album uri for position " + Integer.toString(position));
+        }
 
         // If an image is available load it
         Picasso.with(trackActivityFragment.getActivity())

@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -33,6 +34,9 @@ import retrofit.client.Response;
  * with album name and track name on the right of the entry, with track name given focus via font size
  */
 public class TrackActivityFragment extends Fragment {
+
+    public static final String TRACKFRAGMENT_TAG = "TFTAG";
+    public static final String TRACKQUERY_ARG = "TQARG";
 
     private final String LOG_TAG = TrackActivityFragment.class.getSimpleName();
 
@@ -68,9 +72,9 @@ public class TrackActivityFragment extends Fragment {
             }
         });
 
-        final Intent i = getActivity().getIntent();
-        if( i != null && i.hasExtra(Intent.EXTRA_TEXT)) {
-            getTracks(i.getStringExtra(Intent.EXTRA_TEXT));
+        Bundle args = getArguments();
+        if (args != null) {
+            getTracks(args.getString(TRACKQUERY_ARG));
         }
 
         return rootView;
@@ -107,8 +111,7 @@ public class TrackActivityFragment extends Fragment {
              */
             Map<String, Object> options = new HashMap<>();
             options.put(SpotifyService.COUNTRY,
-                    ((TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE))
-                            .getSimCountryIso().toUpperCase());
+                    Locale.getDefault().getCountry().toUpperCase());
             options.put(SpotifyService.OFFSET, 0);
             options.put(SpotifyService.LIMIT, 10);
 

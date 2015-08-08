@@ -1,7 +1,9 @@
 package com.trogdan.nanospotify;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 
@@ -17,6 +19,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -44,10 +48,15 @@ public class MainActivityFragment extends Fragment {
     private ArtistAdapter m_artistAdapter;
     private FetchArtistsTask m_fetchArtistsTask;
     private String m_previousArtist;
+    private boolean m_twoPane;
 
     public MainActivityFragment() {
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,7 +66,9 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+                             final Bundle savedInstanceState) {
+        m_twoPane = getResources().getBoolean(R.bool.two_pane);
+
         m_artistAdapter = new ArtistAdapter(this, new ArrayList<Artist>());
         final View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -73,8 +84,22 @@ public class MainActivityFragment extends Fragment {
                                     int position, long id) {
                 final Artist artist = (Artist) parent.getItemAtPosition(position);
 
-                startActivity(new Intent(getActivity(),
-                        TrackActivity.class).putExtra(Intent.EXTRA_TEXT, artist.id));
+                if (m_twoPane) {
+                    if (savedInstanceState == null) {
+                        TrackActivityFragment fragment = new TrackActivityFragment();
+                        Bundle args = new Bundle();
+                        args.putString(TrackActivityFragment.TRACKQUERY_ARG, artist.id);
+                        fragment.setArguments(args);
+
+                        getActivity().getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.track_container, fragment, TrackActivityFragment.TRACKFRAGMENT_TAG)
+                                .commit();
+                    }
+                } else {
+                    startActivity(new Intent(getActivity(),
+                            TrackActivity.class).putExtra(Intent.EXTRA_TEXT, artist.id));
+                }
+
             }
         });
 
@@ -97,6 +122,8 @@ public class MainActivityFragment extends Fragment {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                prefs.edit().putString(getActivity().getString(R.string.pref_last_query_key), query).commit();
                 getArtists(query);
                 return false;
             }
