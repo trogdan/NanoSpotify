@@ -61,11 +61,9 @@ class TrackAdapter extends ArrayAdapter<Track> {
             viewHolder.trackTextView = (TextView) view
                     .findViewById(R.id.track_name_text);
             view.setTag(viewHolder);
-        }
-        else
-        {
+        } else {
             Log.d(LOG_TAG, "Hey benefit!");
-            viewHolder = (ViewHolder)view.getTag();
+            viewHolder = (ViewHolder) view.getTag();
         }
 
         // Get the track being loaded for the listview
@@ -76,21 +74,18 @@ class TrackAdapter extends ArrayAdapter<Track> {
 
         viewHolder.imageView.setImageBitmap(null);
 
-        // If an image is available load it
-        if (albumUrl != null) {
-            Log.d(LOG_TAG, "Loading picasso with album uri " + albumUrl);
+//        if (albumUrl != null) {
+//            Log.d(LOG_TAG, "Loading picasso with album uri " + albumUrl);
+//        }
 
-            Picasso.with(trackActivityFragment.getActivity())
-                    .load(albumUrl)
-                    .placeholder(R.drawable.ic_track_icon)
-                    .noFade()
-                    .fit()
-                    .centerInside()
-                    .into(viewHolder.imageView);
-        } else {
-            // If no image, just use the default.
-            viewHolder.imageView.setImageResource(R.drawable.ic_track_icon);
-        }
+        // If an image is available load it
+        Picasso.with(trackActivityFragment.getActivity())
+                .load(albumUrl)
+                .placeholder(R.drawable.ic_track_icon)
+                .noFade()
+                .fit()
+                .centerInside()
+                .into(viewHolder.imageView);
 
         // Set texts
         viewHolder.albumTextView.setText(item.album.name);

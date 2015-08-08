@@ -49,14 +49,24 @@ class ArtistAdapter extends ArrayAdapter<Artist> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = mainActivityFragment.getActivity().getLayoutInflater()
+        ViewHolder viewHolder;
+        View view = convertView;
+
+        if (view == null) {
+            view = mainActivityFragment.getActivity().getLayoutInflater()
                     .inflate(R.layout.list_item_artist, parent, false);
+
             viewHolder = new ViewHolder();
-            viewHolder.imageView = (ImageView) convertView
+            viewHolder.imageView = (ImageView) view
                     .findViewById(R.id.artist_icon);
-            viewHolder.textView = (TextView) convertView
+            viewHolder.textView = (TextView) view
                     .findViewById(R.id.artist_name_text);
+
+            view.setTag(viewHolder);
+        }
+        else
+        {
+            viewHolder = (ViewHolder)view.getTag();
         }
 
         // Get the artist being loaded for the listview
@@ -65,27 +75,24 @@ class ArtistAdapter extends ArrayAdapter<Artist> {
         // Find the right size image to load
         final String imageUrl = getClosestImageUriBySize(item, viewHolder.imageView);
 
+//        if (imageUrl != null) {
+//            Log.d(LOG_TAG, "Loading picasso with artist uri " + imageUrl);
+//        }
+
+        viewHolder.imageView.setImageBitmap(null);
+
         // If an image is available load it
-        if (imageUrl != null) {
-            Log.d(LOG_TAG, "Loading picasso with uri " + imageUrl);
+        Picasso.with(mainActivityFragment.getActivity())
+                .load(imageUrl)
+                .placeholder(R.drawable.ic_artist_icon)
+                .noFade()
+                .fit()
+                .centerInside()
+                .into(viewHolder.imageView);
 
-            Picasso.with(mainActivityFragment.getActivity())
-                    .load(imageUrl)
-                    .placeholder(R.drawable.ic_artist_icon)
-                    .noFade()
-                    .fit()
-                    .centerInside()
-                    .into(viewHolder.imageView);
-        } else {
-            // If no image, just use the default.
-            viewHolder.imageView.setImageResource(R.drawable.ic_artist_icon);
-        }
-
-        viewHolder.textView = (TextView) convertView
-                .findViewById(R.id.artist_name_text);
         viewHolder.textView.setText(item.name);
 
-        return convertView;
+        return view;
     }
 
     private class ViewHolder {
