@@ -22,8 +22,6 @@ class TrackAdapter extends ArrayAdapter<Track> {
     private TrackActivityFragment trackActivityFragment;
     private final String LOG_TAG = TrackAdapter.class.getSimpleName();
 
-    private ViewHolder viewHolder;
-
     public TrackAdapter(TrackActivityFragment trackActivityFragment, ArrayList<Track> items) {
         super(trackActivityFragment.getActivity(), 0, items);
         this.trackActivityFragment = trackActivityFragment;
@@ -49,9 +47,15 @@ class TrackAdapter extends ArrayAdapter<Track> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder viewHolder;
+
         if (convertView == null) {
             convertView = trackActivityFragment.getActivity().getLayoutInflater()
                     .inflate(R.layout.list_item_track, parent, false);
+            if(convertView.getTag() != null)
+            {
+                Log.d(LOG_TAG, "UH OH!");
+            }
             viewHolder = new ViewHolder();
             viewHolder.imageView = (ImageView) convertView
                     .findViewById(R.id.album_icon);
@@ -59,6 +63,11 @@ class TrackAdapter extends ArrayAdapter<Track> {
                     .findViewById(R.id.album_name_text);
             viewHolder.trackTextView = (TextView) convertView
                     .findViewById(R.id.track_name_text);
+            convertView.setTag(viewHolder);
+        }
+        else
+        {
+            viewHolder = (ViewHolder) convertView.getTag();
         }
         // Get the track being loaded for the listview
         final Track item = getItem(position);
