@@ -71,14 +71,14 @@ class ArtistAdapter extends ArrayAdapter<Artist> {
 
             Picasso.with(mainActivityFragment.getActivity())
                     .load(imageUrl)
-                    .placeholder(R.mipmap.ic_artist_icon)
+                    .placeholder(R.drawable.ic_artist_icon)
                     .noFade()
                     .fit()
                     .centerInside()
                     .into(viewHolder.imageView);
         } else {
             // If no image, just use the default.
-            viewHolder.imageView.setImageResource(R.mipmap.ic_artist_icon);
+            viewHolder.imageView.setImageResource(R.drawable.ic_artist_icon);
         }
 
         viewHolder.textView = (TextView) convertView

@@ -48,28 +48,33 @@ class TrackAdapter extends ArrayAdapter<Track> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
+        View view = convertView;
 
-        if (convertView == null) {
-            convertView = trackActivityFragment.getActivity().getLayoutInflater()
+        if (view == null) {
+            view = trackActivityFragment.getActivity().getLayoutInflater()
                     .inflate(R.layout.list_item_track, parent, false);
             viewHolder = new ViewHolder();
-            viewHolder.imageView = (ImageView) convertView
+            viewHolder.imageView = (ImageView) view
                     .findViewById(R.id.album_icon);
-            viewHolder.albumTextView = (TextView) convertView
+            viewHolder.albumTextView = (TextView) view
                     .findViewById(R.id.album_name_text);
-            viewHolder.trackTextView = (TextView) convertView
+            viewHolder.trackTextView = (TextView) view
                     .findViewById(R.id.track_name_text);
-            convertView.setTag(viewHolder);
+            view.setTag(viewHolder);
         }
         else
         {
-            viewHolder = (ViewHolder) convertView.getTag();
+            Log.d(LOG_TAG, "Hey benefit!");
+            viewHolder = (ViewHolder)view.getTag();
         }
+
         // Get the track being loaded for the listview
         final Track item = getItem(position);
 
         // Find the right size image to load
         final String albumUrl = getClosestImageUriBySize(item.album, viewHolder.imageView);
+
+        viewHolder.imageView.setImageBitmap(null);
 
         // If an image is available load it
         if (albumUrl != null) {
@@ -77,20 +82,21 @@ class TrackAdapter extends ArrayAdapter<Track> {
 
             Picasso.with(trackActivityFragment.getActivity())
                     .load(albumUrl)
-                    .placeholder(R.mipmap.ic_track_icon)
+                    .placeholder(R.drawable.ic_track_icon)
                     .noFade()
                     .fit()
                     .centerInside()
                     .into(viewHolder.imageView);
         } else {
             // If no image, just use the default.
-            viewHolder.imageView.setImageResource(R.mipmap.ic_track_icon);
+            viewHolder.imageView.setImageResource(R.drawable.ic_track_icon);
         }
+
         // Set texts
         viewHolder.albumTextView.setText(item.album.name);
         viewHolder.trackTextView.setText(item.name);
 
-        return convertView;
+        return view;
     }
 
     private class ViewHolder {
