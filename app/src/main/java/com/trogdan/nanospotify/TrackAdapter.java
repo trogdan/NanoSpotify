@@ -52,10 +52,6 @@ class TrackAdapter extends ArrayAdapter<Track> {
         if (convertView == null) {
             convertView = trackActivityFragment.getActivity().getLayoutInflater()
                     .inflate(R.layout.list_item_track, parent, false);
-            if(convertView.getTag() != null)
-            {
-                Log.d(LOG_TAG, "UH OH!");
-            }
             viewHolder = new ViewHolder();
             viewHolder.imageView = (ImageView) convertView
                     .findViewById(R.id.album_icon);
