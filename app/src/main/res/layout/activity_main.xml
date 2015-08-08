@@ -5,7 +5,7 @@
     android:name="com.trogdan.nanospotify.MainActivityFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
+    android:layout_marginLeft="4dp"
+    android:layout_marginRight="4dp"
     tools:context="com.trogdan.nanospotify.MainActivityFragment"
-    tools:layout="@layout/fragment_main" />
+    tools:layout="@android:layout/list_content" />
