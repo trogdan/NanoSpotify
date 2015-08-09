@@ -3,6 +3,8 @@ package com.trogdan.nanospotify;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +44,7 @@ public class TrackFragment extends Fragment {
     private TrackAdapter m_trackAdapter;
     private FetchTracksTask m_fetchTracksTask;
     private String m_previousArtistId;
+    private boolean m_twoPane;
 
     public TrackFragment() {
     }
@@ -49,6 +52,8 @@ public class TrackFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        m_twoPane = getResources().getBoolean(R.bool.two_pane);
+
         m_trackAdapter = new TrackAdapter(this, new ArrayList<Track>());
         final View rootView = inflater.inflate(R.layout.fragment_track, container, false);
 
@@ -62,10 +67,8 @@ public class TrackFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-//                final Track track = (Track) parent.getItemAtPosition(position);
-//
-//                startActivity(new Intent(getActivity(),
-//                        TrackActivity.class).putExtra(Intent.EXTRA_TEXT, track.href));
+                final Track track = (Track) parent.getItemAtPosition(position);
+                showPlayerDialog(track.href);
             }
         });
 
@@ -76,6 +79,30 @@ public class TrackFragment extends Fragment {
 
         return rootView;
     }
+
+    public void showPlayerDialog(String trackUri) {
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        PlayerFragment playerFragment = new PlayerFragment();
+
+        Bundle args = new Bundle();
+        args.putString(PlayerFragment.PLAYERTRACK_ARG, trackUri);
+        playerFragment.setArguments(args);
+
+        if (m_twoPane) {
+            // The device is using a large layout, so show the fragment as a dialog
+            playerFragment.show(fragmentManager, PlayerFragment.PLAYERFRAGMENT_TAG);
+        } else {
+            // The device is smaller, so show the fragment fullscreen
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            // For a little polish, specify a transition animation
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            // To make it fullscreen, use the 'content' root view as the container
+            // for the fragment, which is always the root view for the activity
+            transaction.add(android.R.id.content, playerFragment)
+                    .addToBackStack(PlayerFragment.PLAYERFRAGMENT_TAG).commit();
+        }
+    }
+
 
     public void getTracks(String artistId) {
         // No point spinning up a new query if it's a repeat
