@@ -27,23 +27,6 @@ class TrackAdapter extends ArrayAdapter<Track> {
         this.trackActivityFragment = trackActivityFragment;
     }
 
-    private String getClosestImageUriBySize(AlbumSimple album, ImageView view) {
-        if (album.images.size() == 0) return null;
-
-        // Get the smallest image that is larger than the imageview in both dimensions
-        // or the largest available
-        final int width = view.getDrawable().getIntrinsicWidth();
-        final int height = view.getDrawable().getIntrinsicHeight();
-
-        // spotify api says largest first
-        for (int i = album.images.size() - 1; i >= 0; i--) {
-            final Image image = album.images.get(i);
-            if (image.width >= width && image.height >= height)
-                return image.url;
-        }
-
-        return album.images.get(0).url;
-    }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -69,7 +52,7 @@ class TrackAdapter extends ArrayAdapter<Track> {
         final Track item = getItem(position);
 
         // Find the right size image to load
-        final String albumUrl = getClosestImageUriBySize(item.album, viewHolder.imageView);
+        final String albumUrl = Utility.getClosestImageUriBySize(item.album.images, viewHolder.imageView);
 
         viewHolder.imageView.setImageBitmap(null);
 

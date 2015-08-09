@@ -41,8 +41,6 @@ public class ArtistFragment extends Fragment {
 
     private final String LOG_TAG = ArtistFragment.class.getSimpleName();
 
-    private final SpotifyApi m_spotifyApi = new SpotifyApi();
-    private final SpotifyService m_spotifyService = m_spotifyApi.getService();
     private ArtistAdapter m_artistAdapter;
     private FetchArtistsTask m_fetchArtistsTask;
     private String m_previousArtist;
@@ -163,7 +161,7 @@ public class ArtistFragment extends Fragment {
                 return null;
             }
 
-            m_spotifyService.searchArtists(params[0], new Callback<ArtistsPager>() {
+            Utility.getSpotifyService().searchArtists(params[0], new Callback<ArtistsPager>() {
                 @Override
                 public void success(ArtistsPager artistsPager, Response response) {
                     Log.d(LOG_TAG, "Artist query success: " + artistsPager.artists.total);

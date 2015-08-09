@@ -18,20 +18,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Coldplay"
-            android:id="@+id/artistText"
+            android:id="@+id/artist_text"
             android:paddingTop="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Ghost Stories"
-            android:id="@+id/albumText"
+            android:id="@+id/album_text"
             android:paddingTop="4dp" />
 
         <ImageView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/albumImage"
+            android:id="@+id/album_image"
             android:src="@mipmap/ic_launcher" />
 
     </LinearLayout>
@@ -45,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="A Sky Full of Stars"
-            android:id="@+id/songText"
+            android:id="@+id/song_text"
             android:layout_weight="0"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
@@ -54,7 +54,7 @@
         <SeekBar
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/seekBar"
+            android:id="@+id/seek_bar"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"/>
 
@@ -62,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0:00"
-            android:id="@+id/startTimeText"
+            android:id="@+id/now_time_text"
             android:layout_alignParentLeft="true"
             android:layout_alignParentBottom="true"
             android:layout_marginLeft="8dp" />
@@ -71,7 +71,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0:00"
-            android:id="@+id/endTimeText"
+            android:id="@+id/end_time_text"
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="true"
             android:layout_marginRight="8dp" />
@@ -86,14 +86,14 @@
             android:layout_width="?android:attr/listPreferredItemHeight"
             android:layout_height="?android:attr/listPreferredItemHeight"
             android:layout_centerInParent="true"
-            android:id="@+id/playButton"
+            android:id="@+id/play_button"
             android:src="@android:drawable/ic_media_play" />
 
         <ImageButton
             android:layout_width="?android:attr/listPreferredItemHeight"
             android:layout_height="?android:attr/listPreferredItemHeight"
-            android:id="@+id/backButton"
-            android:layout_toLeftOf="@+id/playButton"
+            android:id="@+id/back_button"
+            android:layout_toLeftOf="@+id/play_button"
             android:src="@android:drawable/ic_media_previous"
             android:layout_centerVertical="true"
             android:layout_marginRight="16dp" />
@@ -101,8 +101,8 @@
         <ImageButton
             android:layout_width="?android:attr/listPreferredItemHeight"
             android:layout_height="?android:attr/listPreferredItemHeight"
-            android:id="@+id/nextButton"
-            android:layout_toRightOf="@+id/playButton"
+            android:id="@+id/next_button"
+            android:layout_toRightOf="@+id/play_button"
             android:layout_centerVertical="true"
             android:src="@android:drawable/ic_media_next"
             android:layout_marginLeft="16dp" />

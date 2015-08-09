@@ -20,30 +20,9 @@ class ArtistAdapter extends ArrayAdapter<Artist> {
     private ArtistFragment artistFragment;
     private final String LOG_TAG = ArtistAdapter.class.getSimpleName();
 
-    private ViewHolder viewHolder;
-
     public ArtistAdapter(ArtistFragment artistFragment, ArrayList<Artist> items) {
         super(artistFragment.getActivity(), 0, items);
         this.artistFragment = artistFragment;
-    }
-
-    private String getClosestImageUriBySize(Artist artist, ImageView view) {
-        if (artist.images.size() == 0) return null;
-
-        // Get the smallest image that is larger than the imageview in both dimensions
-        // or the largest available. No point using the 200px mentioned in the directions if
-        // the view is larger or smaller than that threshold
-        final int width = view.getDrawable().getIntrinsicWidth();
-        final int height = view.getDrawable().getIntrinsicHeight();
-
-        // spotify api says largest first
-        for (int i = artist.images.size() - 1; i >= 0; i--) {
-            final Image image = artist.images.get(i);
-            if (image.width >= width && image.height >= height)
-                return image.url;
-        }
-
-        return artist.images.get(0).url;
     }
 
     @Override
@@ -72,7 +51,7 @@ class ArtistAdapter extends ArrayAdapter<Artist> {
         final Artist item = getItem(position);
 
         // Find the right size image to load
-        final String imageUrl = getClosestImageUriBySize(item, viewHolder.imageView);
+        final String imageUrl = Utility.getClosestImageUriBySize(item.images, viewHolder.imageView);
 
 //        if (imageUrl != null) {
 //            Log.d(LOG_TAG, "Loading picasso with artist uri " + imageUrl);

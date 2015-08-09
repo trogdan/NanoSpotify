@@ -39,8 +39,6 @@ public class TrackFragment extends Fragment {
 
     private final String LOG_TAG = TrackFragment.class.getSimpleName();
 
-    private final SpotifyApi m_spotifyApi = new SpotifyApi();
-    private final SpotifyService m_spotifyService = m_spotifyApi.getService();
     private TrackAdapter m_trackAdapter;
     private FetchTracksTask m_fetchTracksTask;
     private String m_previousArtistId;
@@ -68,7 +66,7 @@ public class TrackFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 final Track track = (Track) parent.getItemAtPosition(position);
-                showPlayerDialog(track.href);
+                showPlayerDialog(track);
             }
         });
 
@@ -80,12 +78,28 @@ public class TrackFragment extends Fragment {
         return rootView;
     }
 
-    public void showPlayerDialog(String trackUri) {
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        PlayerFragment playerFragment = new PlayerFragment();
+    public void showPlayerDialog(Track track) {
+        final FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        final PlayerFragment playerFragment = new PlayerFragment();
 
-        Bundle args = new Bundle();
-        args.putString(PlayerFragment.PLAYERTRACK_ARG, trackUri);
+        // TODO Content provider
+        final Bundle args = new Bundle();
+        String artists = "";
+        for(int i = 0; i < track.artists.size(); i++) {
+            if(i > 0)
+                artists += ",";
+            artists += track.artists.get(0).name;
+        }
+        args.putString(PlayerFragment.PLAYERARTISTNAME_ARG, artists);
+        args.putString(PlayerFragment.PLAYERALBUMNAME_ARG, track.album.name);
+        args.putString(PlayerFragment.PLAYERTRACKNAME_ARG, track.name);
+        args.putLong(PlayerFragment.PLAYERTRACKDURATION_ARG, track.duration_ms);
+        args.putString(PlayerFragment.PLAYERTRACK_ARG, track.preview_url);
+        if (track.album.images.size() > 0) {
+            // for now, the largest
+            args.putString(PlayerFragment.PLAYERALBUMART_ARG, track.album.images.get(0).url);
+        }
+
         playerFragment.setArguments(args);
 
         if (m_twoPane) {
@@ -93,7 +107,7 @@ public class TrackFragment extends Fragment {
             playerFragment.show(fragmentManager, PlayerFragment.PLAYERFRAGMENT_TAG);
         } else {
             // The device is smaller, so show the fragment fullscreen
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            final FragmentTransaction transaction = fragmentManager.beginTransaction();
             // For a little polish, specify a transition animation
             transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
             // To make it fullscreen, use the 'content' root view as the container
@@ -140,7 +154,7 @@ public class TrackFragment extends Fragment {
             options.put(SpotifyService.LIMIT, 10);
 
             // Get the artist top 10 tracks
-            m_spotifyService.getArtistTopTrack(params[0], options, new Callback<Tracks>() {
+            Utility.getSpotifyService().getArtistTopTrack(params[0], options, new Callback<Tracks>() {
                 @Override
                 public void success(Tracks tracks, Response response) {
                     Log.d(LOG_TAG, "Track query success: " + tracks.tracks.size());
