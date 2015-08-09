@@ -15,13 +15,13 @@ public class TrackActivity extends ActionBarActivity {
         setContentView(R.layout.activity_track);
 
         if (savedInstanceState == null) {
-            final TrackActivityFragment fragment = new TrackActivityFragment();
+            final TrackFragment fragment = new TrackFragment();
 
             final Intent i = getIntent();
             if( i != null && i.hasExtra(Intent.EXTRA_TEXT)) {
                 // TODO, better way then forwarding an intent EXTRA?
                 Bundle args = new Bundle();
-                args.putString(TrackActivityFragment.TRACKQUERY_ARG, i.getStringExtra(Intent.EXTRA_TEXT));
+                args.putString(TrackFragment.TRACKQUERY_ARG, i.getStringExtra(Intent.EXTRA_TEXT));
                 fragment.setArguments(args);
             }
 

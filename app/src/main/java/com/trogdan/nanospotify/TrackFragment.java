@@ -1,11 +1,8 @@
 package com.trogdan.nanospotify;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,16 +26,16 @@ import retrofit.client.Response;
 
 
 /**
- * TrackActivityFragment is used to display the top 10 tracks of a selected artist.  Spotify api
+ * TrackFragment is used to display the top 10 tracks of a selected artist.  Spotify api
  * is passed through the Intent.EXTRA_TEXT.  Current mock-up uses album art on the left of the entry
  * with album name and track name on the right of the entry, with track name given focus via font size
  */
-public class TrackActivityFragment extends Fragment {
+public class TrackFragment extends Fragment {
 
     public static final String TRACKFRAGMENT_TAG = "TFTAG";
     public static final String TRACKQUERY_ARG = "TQARG";
 
-    private final String LOG_TAG = TrackActivityFragment.class.getSimpleName();
+    private final String LOG_TAG = TrackFragment.class.getSimpleName();
 
     private final SpotifyApi m_spotifyApi = new SpotifyApi();
     private final SpotifyService m_spotifyService = m_spotifyApi.getService();
@@ -46,7 +43,7 @@ public class TrackActivityFragment extends Fragment {
     private FetchTracksTask m_fetchTracksTask;
     private String m_previousArtistId;
 
-    public TrackActivityFragment() {
+    public TrackFragment() {
     }
 
     @Override

@@ -21,7 +21,7 @@ public class MainActivity extends ActionBarActivity {
 
         // TODO update the track in our second pane using the fragment manager
 //        if (location != null && !location.equals(mLocation)) {
-        MainActivityFragment ff = (MainActivityFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_main);
+        ArtistFragment ff = (ArtistFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_main);
         if(ff != null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
             String query = prefs.getString(getString(R.string.pref_last_query_key), "");
@@ -51,7 +51,7 @@ public class MainActivity extends ActionBarActivity {
             // fragment transaction.
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.track_container, new TrackActivityFragment(), TrackActivityFragment.TRACKFRAGMENT_TAG)
+                        .replace(R.id.track_container, new TrackFragment(), TrackFragment.TRACKFRAGMENT_TAG)
                         .commit();
             }
         }

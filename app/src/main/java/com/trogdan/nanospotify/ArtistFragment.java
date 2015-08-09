@@ -20,8 +20,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
-
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -34,14 +32,14 @@ import retrofit.client.Response;
 
 
 /**
- * MainActivityFragment is used provide a search mechanism for artists, and display the results of
+ * ArtistFragment is used provide a search mechanism for artists, and display the results of
  * an artist search.  Selection of an artist results in the firing of an explicit intent to display
  * the top 10 tracks for a selected artist.  Artist results are display with an image of the artist
  * on the left of a list entry, with artist name on the right of the list entry.
  */
-public class MainActivityFragment extends Fragment {
+public class ArtistFragment extends Fragment {
 
-    private final String LOG_TAG = MainActivityFragment.class.getSimpleName();
+    private final String LOG_TAG = ArtistFragment.class.getSimpleName();
 
     private final SpotifyApi m_spotifyApi = new SpotifyApi();
     private final SpotifyService m_spotifyService = m_spotifyApi.getService();
@@ -50,7 +48,7 @@ public class MainActivityFragment extends Fragment {
     private String m_previousArtist;
     private boolean m_twoPane;
 
-    public MainActivityFragment() {
+    public ArtistFragment() {
     }
 
     @Override
@@ -86,13 +84,13 @@ public class MainActivityFragment extends Fragment {
 
                 if (m_twoPane) {
                     if (savedInstanceState == null) {
-                        TrackActivityFragment fragment = new TrackActivityFragment();
+                        TrackFragment fragment = new TrackFragment();
                         Bundle args = new Bundle();
-                        args.putString(TrackActivityFragment.TRACKQUERY_ARG, artist.id);
+                        args.putString(TrackFragment.TRACKQUERY_ARG, artist.id);
                         fragment.setArguments(args);
 
                         getActivity().getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.track_container, fragment, TrackActivityFragment.TRACKFRAGMENT_TAG)
+                                .replace(R.id.track_container, fragment, TrackFragment.TRACKFRAGMENT_TAG)
                                 .commit();
                     }
                 } else {

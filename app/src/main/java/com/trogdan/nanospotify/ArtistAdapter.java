@@ -1,6 +1,5 @@
 package com.trogdan.nanospotify;
 
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -18,14 +17,14 @@ import kaaes.spotify.webapi.android.models.Image;
  * Created by dan on 7/12/15.
  */
 class ArtistAdapter extends ArrayAdapter<Artist> {
-    private MainActivityFragment mainActivityFragment;
+    private ArtistFragment artistFragment;
     private final String LOG_TAG = ArtistAdapter.class.getSimpleName();
 
     private ViewHolder viewHolder;
 
-    public ArtistAdapter(MainActivityFragment mainActivityFragment, ArrayList<Artist> items) {
-        super(mainActivityFragment.getActivity(), 0, items);
-        this.mainActivityFragment = mainActivityFragment;
+    public ArtistAdapter(ArtistFragment artistFragment, ArrayList<Artist> items) {
+        super(artistFragment.getActivity(), 0, items);
+        this.artistFragment = artistFragment;
     }
 
     private String getClosestImageUriBySize(Artist artist, ImageView view) {
@@ -53,7 +52,7 @@ class ArtistAdapter extends ArrayAdapter<Artist> {
         View view = convertView;
 
         if (view == null) {
-            view = mainActivityFragment.getActivity().getLayoutInflater()
+            view = artistFragment.getActivity().getLayoutInflater()
                     .inflate(R.layout.list_item_artist, parent, false);
 
             viewHolder = new ViewHolder();
@@ -82,7 +81,7 @@ class ArtistAdapter extends ArrayAdapter<Artist> {
         viewHolder.imageView.setImageBitmap(null);
 
         // If an image is available load it
-        Picasso.with(mainActivityFragment.getActivity())
+        Picasso.with(artistFragment.getActivity())
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_artist_icon)
                 .noFade()

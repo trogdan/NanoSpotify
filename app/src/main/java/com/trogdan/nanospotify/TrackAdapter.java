@@ -19,10 +19,10 @@ import kaaes.spotify.webapi.android.models.Track;
  * Created by dan on 7/12/15.
  */
 class TrackAdapter extends ArrayAdapter<Track> {
-    private TrackActivityFragment trackActivityFragment;
+    private TrackFragment trackActivityFragment;
     private final String LOG_TAG = TrackAdapter.class.getSimpleName();
 
-    public TrackAdapter(TrackActivityFragment trackActivityFragment, ArrayList<Track> items) {
+    public TrackAdapter(TrackFragment trackActivityFragment, ArrayList<Track> items) {
         super(trackActivityFragment.getActivity(), 0, items);
         this.trackActivityFragment = trackActivityFragment;
     }
