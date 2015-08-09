@@ -1,5 +1,6 @@
 package com.trogdan.nanospotify;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -79,8 +80,6 @@ public class TrackFragment extends Fragment {
     }
 
     public void showPlayerDialog(Track track) {
-        final FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        final PlayerFragment playerFragment = new PlayerFragment();
 
         // TODO Content provider
         final Bundle args = new Bundle();
@@ -100,20 +99,27 @@ public class TrackFragment extends Fragment {
             args.putString(PlayerFragment.PLAYERALBUMART_ARG, track.album.images.get(0).url);
         }
 
-        playerFragment.setArguments(args);
-
         if (m_twoPane) {
+            final FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+
+            final PlayerFragment playerFragment = new PlayerFragment();
+            playerFragment.setArguments(args);
             // The device is using a large layout, so show the fragment as a dialog
             playerFragment.show(fragmentManager, PlayerFragment.PLAYERFRAGMENT_TAG);
         } else {
-            // The device is smaller, so show the fragment fullscreen
-            final FragmentTransaction transaction = fragmentManager.beginTransaction();
-            // For a little polish, specify a transition animation
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            // To make it fullscreen, use the 'content' root view as the container
-            // for the fragment, which is always the root view for the activity
-            transaction.add(android.R.id.content, playerFragment)
-                    .addToBackStack(PlayerFragment.PLAYERFRAGMENT_TAG).commit();
+            Intent intent = new Intent(getActivity(), PlayerActivity.class);
+            intent.putExtras(args);
+            startActivity(intent);
+//            // The device is smaller, so show the fragment fullscreen
+//            final FragmentTransaction transaction = fragmentManager.beginTransaction();
+//            // For a little polish, specify a transition animation
+//            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+//            // To make it fullscreen, use the 'content' root view as the container
+//            // for the fragment, which is always the root view for the activity
+//            //transaction.add(android.R.id.content, playerFragment)
+//            //        .addToBackStack(null).commit();
+//            transaction.replace(R.id.track_container, playerFragment, PlayerFragment.PLAYERFRAGMENT_TAG);
+//            transaction.commit();
         }
     }
 

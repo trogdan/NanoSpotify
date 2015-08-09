@@ -78,6 +78,8 @@ public class PlayerFragment extends DialogFragment {
                     .into(albumImageView);
         }
 
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.PlayerDialog);
+
         return rootView;
     }
 
