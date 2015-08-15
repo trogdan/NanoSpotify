@@ -1,31 +1,22 @@
 package com.trogdan.nanospotify;
 
 import android.app.Dialog;
-import android.os.AsyncTask;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.SeekBar;
 
 import com.squareup.picasso.Picasso;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Tracks;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import com.trogdan.nanospotify.musicservice.MusicService;
 
 
 /**
@@ -42,6 +33,8 @@ public class PlayerFragment extends DialogFragment {
     public static final String PLAYERALBUMNAME_ARG = "PALNARG";
     public static final String PLAYERALBUMART_ARG = "PALAARG";
     public static final String PLAYERARTISTNAME_ARG = "PARNARG";
+
+    private ViewHolder mViewHolder;
 
     public PlayerFragment() {
     }
@@ -64,6 +57,50 @@ public class PlayerFragment extends DialogFragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_player, container, false);
 
+        mViewHolder = new ViewHolder();
+        mViewHolder.mTogglePlaybackButton = (ImageButton) rootView.findViewById(R.id.play_button);
+        mViewHolder.mTogglePlaybackButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+                if(mViewHolder.mTogglePlaybackButton.getTag() == android.R.drawable.ic_media_pause)
+                {
+                    mViewHolder.mTogglePlaybackButton.setImageResource(android.R.drawable.ic_media_play);
+                    mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_play);
+                }
+                else //ic_media_play
+                {
+                    mViewHolder.mTogglePlaybackButton.setImageResource(android.R.drawable.ic_media_pause);
+                    mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_pause);
+                }
+
+                // Perform action on click
+                Intent i = new Intent(getActivity(), MusicService.class);
+                i.setAction(MusicService.ACTION_TOGGLE_PLAYBACK);
+                getActivity().startService(i);
+            }
+        });
+        mViewHolder.mBackButton = (ImageButton) rootView.findViewById(R.id.back_button);
+        mViewHolder.mBackButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+                Intent i = new Intent(getActivity(), MusicService.class);
+                i.setAction(MusicService.ACTION_SKIP);
+                getActivity().startService(i);
+            }
+        });
+        mViewHolder.mNextButton = (ImageButton) rootView.findViewById(R.id.next_button);
+        mViewHolder.mNextButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Perform action on click
+                Intent i = new Intent(getActivity(), MusicService.class);
+                i.setAction(MusicService.ACTION_PREVIOUS);
+                getActivity().startService(i);
+            }
+        });
+
+        mViewHolder.mSeekBar = (SeekBar) rootView.findViewById(R.id.seek_bar);
+        // TODO seek
+
         Bundle args = getArguments();
         if (args != null) {
             ImageView albumImageView = (ImageView) rootView.findViewById(R.id.album_image);
@@ -76,6 +113,16 @@ public class PlayerFragment extends DialogFragment {
                     .fit()
                     .centerInside()
                     .into(albumImageView);
+
+            // Send an intent with the URL of the song to load. This is expected by
+            // MusicService.
+            Intent i = new Intent(getActivity(), MusicService.class);
+            i.setAction(MusicService.ACTION_URL);
+            Uri uri = Uri.parse(args.getString(PLAYERTRACK_ARG));
+            i.setData(uri);
+            getActivity().startService(i);
+
+            mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_pause);
         }
 
         setStyle(DialogFragment.STYLE_NORMAL, R.style.PlayerDialog);
@@ -91,4 +138,11 @@ public class PlayerFragment extends DialogFragment {
         return dialog;
     }
 
+    private class ViewHolder
+    {
+        public ImageButton mTogglePlaybackButton;
+        public ImageButton mBackButton;
+        public ImageButton mNextButton;
+        public SeekBar mSeekBar;
+    }
 }

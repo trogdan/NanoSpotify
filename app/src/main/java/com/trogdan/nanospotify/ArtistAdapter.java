@@ -1,5 +1,6 @@
 package com.trogdan.nanospotify;
 
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -11,7 +12,6 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.Image;
 
 /**
  * Created by dan on 7/12/15.
@@ -53,9 +53,12 @@ class ArtistAdapter extends ArrayAdapter<Artist> {
         // Find the right size image to load
         final String imageUrl = Utility.getClosestImageUriBySize(item.images, viewHolder.imageView);
 
-//        if (imageUrl != null) {
-//            Log.d(LOG_TAG, "Loading picasso with artist uri " + imageUrl);
-//        }
+        if (imageUrl != null) {
+            Log.d(LOG_TAG, "Loading picasso with artist uri " + imageUrl + " for position " + Integer.toString(position));
+        }
+        else  {
+            Log.d(LOG_TAG, "No artist uri for position " + Integer.toString(position));
+        }
 
         viewHolder.imageView.setImageBitmap(null);
 

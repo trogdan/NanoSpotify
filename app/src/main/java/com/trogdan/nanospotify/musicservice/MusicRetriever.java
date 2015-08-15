@@ -41,8 +41,6 @@ public class MusicRetriever {
     // the items (songs) we have queried
     List<Item> mItems = new ArrayList<Item>();
 
-    Random mRandom = new Random();
-
     public MusicRetriever(ContentResolver cr) {
         mContentResolver = cr;
     }
@@ -103,17 +101,12 @@ public class MusicRetriever {
         return mContentResolver;
     }
 
-    /** Returns a random Item. If there are no items available, returns null. */
-    public Item getRandomItem() {
-        if (mItems.size() <= 0) return null;
-        return mItems.get(mRandom.nextInt(mItems.size()));
-    }
-
     public static class Item {
         long id;
         String artist;
         String title;
         String album;
+        Uri uri;
         long duration;
 
         public Item(long id, String artist, String title, String album, long duration) {
@@ -144,9 +137,6 @@ public class MusicRetriever {
             return duration;
         }
 
-        public Uri getURI() {
-            return ContentUris.withAppendedId(
-                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
-        }
+        public Uri getURI() { return uri; }
     }
 }
