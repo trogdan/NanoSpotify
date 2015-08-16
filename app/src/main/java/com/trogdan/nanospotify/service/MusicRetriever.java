@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.trogdan.nanospotify.musicservice;
+package com.trogdan.nanospotify.service;
 
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -25,7 +24,6 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Retrieves and organizes media to play. Before being used, you must call {@link #prepare()},

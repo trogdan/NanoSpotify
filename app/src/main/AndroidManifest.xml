@@ -34,7 +34,7 @@
             android:name=".PlayerActivity"
             android:label="@string/app_name" >
         </activity>
-        <service android:enabled="true" android:name=".musicservice.MusicService" >
+        <service android:enabled="true" android:name=".service.MusicService" >
             <intent-filter>
                 <action android:name="com.trogdan.nanospotify.musicservice.action.TOGGLE_PLAYBACK" />
                 <action android:name="com.trogdan.nanospotify.musicservice.action.PLAY" />

@@ -16,7 +16,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 
 import com.squareup.picasso.Picasso;
-import com.trogdan.nanospotify.musicservice.MusicService;
+import com.trogdan.nanospotify.service.MusicService;
 
 
 /**

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.trogdan.nanospotify.musicservice;
+package com.trogdan.nanospotify.service;
 
 import android.app.Notification;
 import android.app.NotificationManager;
