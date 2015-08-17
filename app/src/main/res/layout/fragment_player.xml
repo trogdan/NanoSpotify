@@ -18,20 +18,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Coldplay"
-            android:id="@+id/artist_text"
+            android:id="@+id/artist_player_text"
             android:paddingTop="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Ghost Stories"
-            android:id="@+id/album_text"
+            android:id="@+id/album_player_text"
             android:paddingTop="4dp" />
 
         <ImageView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/album_image"
+            android:id="@+id/album_player_image"
             android:src="@mipmap/ic_launcher" />
 
     </LinearLayout>
@@ -45,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="A Sky Full of Stars"
-            android:id="@+id/song_text"
+            android:id="@+id/track_player_text"
             android:layout_weight="0"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"

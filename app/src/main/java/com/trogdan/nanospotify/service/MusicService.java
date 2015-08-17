@@ -172,10 +172,6 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 
-        // TODO Create the retriever and start an asynchronous task that will prepare it.
-//        mRetriever = new MusicRetriever(getContentResolver());
-//        (new PrepareMusicRetrieverTask(mRetriever,this)).execute();
-
         // create the Audio Focus Helper, if the Audio Focus feature is available (SDK 8 or above)
         if (android.os.Build.VERSION.SDK_INT >= 8)
             mAudioFocusHelper = new AudioFocusHelper(getApplicationContext(), this);
@@ -372,8 +368,6 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
         mState = State.Stopped;
         relaxResources(false); // release everything except MediaPlayer
 
-        //TEMP working out player interactions between adding content provider and db
-        mSongTitle = manualUrl;
         try {
             if (manualUrl != null) {
                 // set the source of the media player to a manual URL or path
@@ -384,36 +378,8 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             }
             else
                 return;
-//            MusicRetriever.Item playingItem = null;
-//            if (manualUrl != null) {
-//                // set the source of the media player to a manual URL or path
-//                createMediaPlayerIfNeeded();
-//                mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                mPlayer.setDataSource(manualUrl);
-//                mIsStreaming = manualUrl.startsWith("http:") || manualUrl.startsWith("https:");
-//
-//                playingItem = new MusicRetriever.Item(0, null, manualUrl, null, 0);
-//            }
-//            else {
-//                mIsStreaming = false; // playing a locally available song
-//
-//                playingItem = mRetriever.getRandomItem();
-//                if (playingItem == null) {
-//                    Toast.makeText(this,
-//                            "No available music to play. Place some music on your external storage "
-//                            + "device (e.g. your SD card) and try again.",
-//                            Toast.LENGTH_LONG).show();
-//                    processStopRequest(true); // stop everything!
-//                    return;
-//                }
-//
-//                // set the source of the media player a a content URI
-//                createMediaPlayerIfNeeded();
-//                mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                mPlayer.setDataSource(getApplicationContext(), playingItem.getURI());
-//            }
-//
-//            mSongTitle = playingItem.getTitle();
+
+            mSongTitle = manualUrl;
 
             mState = State.Preparing;
             setUpAsForeground(mSongTitle + " (loading)");

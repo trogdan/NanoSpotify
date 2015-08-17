@@ -19,19 +19,6 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
 
-        // TODO update the track in our second pane using the fragment manager
-//        if (location != null && !location.equals(mLocation)) {
-        ArtistFragment ff = (ArtistFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_main);
-        if(ff != null) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            String query = prefs.getString(getString(R.string.pref_last_query_key), "");
-            ff.getArtists(query);
-        }
-//            if ( null != ff ) {
-//                ff.onLocationChanged();
-//            }
-//            mLocation = location;
-//        }
     }
 
     @Override

@@ -13,6 +13,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.trogdan.nanospotify.data.ParcelableTrack;
+import com.trogdan.nanospotify.data.ParcelableTrackContainer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -64,8 +67,15 @@ public class TrackFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                final Track track = (Track) parent.getItemAtPosition(position);
-                showPlayerDialog(track);
+                ArrayList<ParcelableTrack> trackList = new ArrayList<ParcelableTrack>();
+                for(int i = 0; i < parent.getCount(); i++)
+                {
+                    final Track track = (Track) parent.getItemAtPosition(i);
+                    final ParcelableTrack parcelableTrack = new ParcelableTrack(track);
+                    trackList.add(parcelableTrack);
+                }
+
+                showPlayerDialog(trackList, position);
             }
         });
 
@@ -77,25 +87,11 @@ public class TrackFragment extends Fragment {
         return rootView;
     }
 
-    public void showPlayerDialog(Track track) {
+    public void showPlayerDialog(ArrayList<ParcelableTrack> trackList, int firstTrack) {
 
-        // TODO Content provider
         final Bundle args = new Bundle();
-        String artists = "";
-        for(int i = 0; i < track.artists.size(); i++) {
-            if(i > 0)
-                artists += ",";
-            artists += track.artists.get(0).name;
-        }
-        args.putString(PlayerFragment.PLAYERARTISTNAME_ARG, artists);
-        args.putString(PlayerFragment.PLAYERALBUMNAME_ARG, track.album.name);
-        args.putString(PlayerFragment.PLAYERTRACKNAME_ARG, track.name);
-        args.putLong(PlayerFragment.PLAYERTRACKDURATION_ARG, track.duration_ms);
-        args.putString(PlayerFragment.PLAYERTRACK_ARG, track.preview_url);
-        if (track.album.images.size() > 0) {
-            // for now, the largest
-            args.putString(PlayerFragment.PLAYERALBUMART_ARG, track.album.images.get(0).url);
-        }
+        args.putParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG, trackList);
+        args.putInt(PlayerFragment.PLAYERFIRSTTRACK_ARG, firstTrack);
 
         if (m_twoPane) {
             final FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
@@ -108,16 +104,6 @@ public class TrackFragment extends Fragment {
             Intent intent = new Intent(getActivity(), PlayerActivity.class);
             intent.putExtras(args);
             startActivity(intent);
-//            // The device is smaller, so show the fragment fullscreen
-//            final FragmentTransaction transaction = fragmentManager.beginTransaction();
-//            // For a little polish, specify a transition animation
-//            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-//            // To make it fullscreen, use the 'content' root view as the container
-//            // for the fragment, which is always the root view for the activity
-//            //transaction.add(android.R.id.content, playerFragment)
-//            //        .addToBackStack(null).commit();
-//            transaction.replace(R.id.track_container, playerFragment, PlayerFragment.PLAYERFRAGMENT_TAG);
-//            transaction.commit();
         }
     }
 

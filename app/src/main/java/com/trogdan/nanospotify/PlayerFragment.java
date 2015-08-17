@@ -2,7 +2,6 @@ package com.trogdan.nanospotify;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
@@ -14,9 +13,13 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.trogdan.nanospotify.data.ParcelableTrack;
 import com.trogdan.nanospotify.service.MusicService;
+
+import java.util.ArrayList;
 
 
 /**
@@ -26,15 +29,12 @@ public class PlayerFragment extends DialogFragment {
 
     public static final String PLAYERFRAGMENT_TAG = "PFTAG";
 
-    // TODO DB and content provider
-    public static final String PLAYERTRACK_ARG = "PTARG";
-    public static final String PLAYERTRACKNAME_ARG = "PTNARG";
-    public static final String PLAYERTRACKDURATION_ARG = "PTDARG";
-    public static final String PLAYERALBUMNAME_ARG = "PALNARG";
-    public static final String PLAYERALBUMART_ARG = "PALAARG";
-    public static final String PLAYERARTISTNAME_ARG = "PARNARG";
+    public static final String PLAYERTRACKS_ARG = "PTSARG";
+    public static final String PLAYERFIRSTTRACK_ARG = "PFTARG";
 
     private ViewHolder mViewHolder;
+    private ArrayList<ParcelableTrack> mTrackList;
+    private int mCurrentTrack;
 
     public PlayerFragment() {
     }
@@ -55,14 +55,22 @@ public class PlayerFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_player, container, false);
+        final View rootView = inflater.inflate(R.layout.fragment_player, container, false);
 
         mViewHolder = new ViewHolder();
+
+        mViewHolder.mArtistText = (TextView) rootView.findViewById(R.id.artist_player_text);
+        mViewHolder.mAlbumText = (TextView) rootView.findViewById(R.id.album_player_text);
+        mViewHolder.mTrackText = (TextView) rootView.findViewById(R.id.track_player_text);
+        mViewHolder.mAlbumArtImage = (ImageView) rootView.findViewById(R.id.album_player_image);
+
         mViewHolder.mTogglePlaybackButton = (ImageButton) rootView.findViewById(R.id.play_button);
         mViewHolder.mTogglePlaybackButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                if(mViewHolder.mTogglePlaybackButton.getTag() == android.R.drawable.ic_media_pause)
+                mViewHolder.mTogglePlaybackButton.setImageBitmap(null);
+
+                if((int)mViewHolder.mTogglePlaybackButton.getTag() == android.R.drawable.ic_media_pause)
                 {
                     mViewHolder.mTogglePlaybackButton.setImageResource(android.R.drawable.ic_media_play);
                     mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_play);
@@ -101,25 +109,30 @@ public class PlayerFragment extends DialogFragment {
         mViewHolder.mSeekBar = (SeekBar) rootView.findViewById(R.id.seek_bar);
         // TODO seek
 
-        Bundle args = getArguments();
+        final Bundle args = getArguments();
         if (args != null) {
-            ImageView albumImageView = (ImageView) rootView.findViewById(R.id.album_image);
+            mCurrentTrack = args.getInt(PLAYERFIRSTTRACK_ARG);
+            mTrackList = args.getParcelableArrayList(PLAYERTRACKS_ARG);
 
-            // If an image is available load it, it's already async
+            final ParcelableTrack track = mTrackList.get(mCurrentTrack);
+
+            mViewHolder.mArtistText.setText(track.getArtistName());
+            mViewHolder.mAlbumText.setText(track.getAlbumName());
+            mViewHolder.mTrackText.setText(track.getTrackName());
+
+            // If an image is available load it, picasso is already async
             Picasso.with(getActivity())
-                    .load(args.getString(PLAYERALBUMART_ARG))
+                    .load(track.getAlbumArt())
                     .placeholder(R.mipmap.ic_launcher)
                     .noFade()
                     .fit()
                     .centerInside()
-                    .into(albumImageView);
+                    .into(mViewHolder.mAlbumArtImage);
 
-            // Send an intent with the URL of the song to load. This is expected by
-            // MusicService.
-            Intent i = new Intent(getActivity(), MusicService.class);
+            // Send an intent with the URI of the song to load. This is expected by MusicService.
+            final Intent i = new Intent(getActivity(), MusicService.class);
             i.setAction(MusicService.ACTION_URL);
-            Uri uri = Uri.parse(args.getString(PLAYERTRACK_ARG));
-            i.setData(uri);
+            i.setData(track.getTrack());
             getActivity().startService(i);
 
             mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_pause);
@@ -140,6 +153,10 @@ public class PlayerFragment extends DialogFragment {
 
     private class ViewHolder
     {
+        public TextView mArtistText;
+        public TextView mAlbumText;
+        public TextView mTrackText;
+        public ImageView mAlbumArtImage;
         public ImageButton mTogglePlaybackButton;
         public ImageButton mBackButton;
         public ImageButton mNextButton;
