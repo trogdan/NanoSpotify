@@ -90,18 +90,30 @@ public class PlayerFragment extends DialogFragment {
         mViewHolder.mBackButton = (ImageButton) rootView.findViewById(R.id.back_button);
         mViewHolder.mBackButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                if(mCurrentTrack - 1 < 0) return;
+                mCurrentTrack--;
+
                 // Perform action on click
+                final ParcelableTrack track = mTrackList.get(mCurrentTrack);
+
                 Intent i = new Intent(getActivity(), MusicService.class);
                 i.setAction(MusicService.ACTION_SKIP);
+                i.setData(track.getTrack());
                 getActivity().startService(i);
             }
         });
         mViewHolder.mNextButton = (ImageButton) rootView.findViewById(R.id.next_button);
         mViewHolder.mNextButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                if(mCurrentTrack + 1 >= mTrackList.size()) return;
+                mCurrentTrack++;
+
                 // Perform action on click
+                final ParcelableTrack track = mTrackList.get(mCurrentTrack);
+
                 Intent i = new Intent(getActivity(), MusicService.class);
                 i.setAction(MusicService.ACTION_PREVIOUS);
+                i.setData(track.getTrack());
                 getActivity().startService(i);
             }
         });
@@ -131,8 +143,8 @@ public class PlayerFragment extends DialogFragment {
 
             // Send an intent with the URI of the song to load. This is expected by MusicService.
             final Intent i = new Intent(getActivity(), MusicService.class);
-            i.setAction(MusicService.ACTION_URL);
-            i.setData(track.getTrack());
+            i.setAction(MusicService.ACTION_URLS);
+            i.putExtras(args);
             getActivity().startService(i);
 
             mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_pause);
