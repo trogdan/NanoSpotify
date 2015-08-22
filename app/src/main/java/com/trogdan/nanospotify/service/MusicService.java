@@ -206,6 +206,8 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
         else if (action.equals(ACTION_SEEK)) processSeekRequest(intent);
         else if (action.equals(ACTION_URLS)) processAddRequest(intent);
 
+        // After all that's said and done, tell the UI which track we are currently on
+
         return START_NOT_STICKY; // Means we started the service, but don't want it to
                                  // restart in case it's killed.
     }
@@ -213,7 +215,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     void processTogglePlaybackRequest() {
         if (mState == State.Paused || mState == State.Stopped) {
             processPlayRequest();
-        } else {
+        } else if (mState == State.Playing) {
             processPauseRequest();
         }
     }
@@ -232,6 +234,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             configAndStartMediaPlayer();
             startTimer();
         }
+
     }
 
     void processPauseRequest() {
@@ -430,10 +433,6 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             // we are *not* streaming, we want to release the lock if we were holding it before.
             mWifiLock.acquire();
 
-            final Intent i = new Intent(STATUS_SERVICE);
-            i.putExtra(STATUS_CURRENT_TRACK, mCurrentTrack);
-            mBroadcaster.sendBroadcast(i);
-
             mNextTrack = mCurrentTrack + 1;
 
             startTimer();
@@ -468,6 +467,10 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
         mState = State.Playing;
         updateNotification(mSongTitle + " (playing)");
         configAndStartMediaPlayer();
+
+        final Intent i = new Intent(STATUS_SERVICE);
+        i.putExtra(STATUS_CURRENT_TRACK, mCurrentTrack);
+        mBroadcaster.sendBroadcast(i);
     }
 
     /** Updates the notification. */

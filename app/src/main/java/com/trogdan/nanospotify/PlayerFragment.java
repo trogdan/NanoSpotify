@@ -98,11 +98,10 @@ public class PlayerFragment extends DialogFragment {
                 }
                 if(intent.hasExtra(MusicService.STATUS_CURRENT_TRACK))
                 {
-                    int newTrack = intent.getIntExtra(MusicService.STATUS_CURRENT_TRACK, 0);
-                    if (newTrack != mCurrentTrack) {
-                        mCurrentTrack = newTrack;
-                        updateViewsFromTrack(mTrackList.get(mCurrentTrack));
-                    }
+                    // we now know the track has started, update the UI.
+                    mCurrentTrack = intent.getIntExtra(MusicService.STATUS_CURRENT_TRACK, 0);
+                    updateViewsFromTrack(mTrackList.get(mCurrentTrack));
+                    setPlaybackButton(true);
                 }
             }
         };
@@ -157,7 +156,7 @@ public class PlayerFragment extends DialogFragment {
                 if(mCurrentTrack - 1 < 0) return;
                 mCurrentTrack--;
 
-                updateViewsFromTrack(mTrackList.get(mCurrentTrack));
+                updateViewsFromTrack(null);
 
                 setPlaybackButton(true);
 
@@ -175,7 +174,7 @@ public class PlayerFragment extends DialogFragment {
                 if (mCurrentTrack + 1 >= mTrackList.size()) return;
                 mCurrentTrack++;
 
-                updateViewsFromTrack(mTrackList.get(mCurrentTrack));
+                updateViewsFromTrack(null);
 
                 setPlaybackButton(true);
 
@@ -192,7 +191,7 @@ public class PlayerFragment extends DialogFragment {
 
             final ParcelableTrack track = mTrackList.get(mCurrentTrack);
 
-            updateViewsFromTrack(track);
+            updateViewsFromTrack(null);
 
             setPlaybackButton(true);
 
@@ -271,28 +270,40 @@ public class PlayerFragment extends DialogFragment {
 
     private void updateViewsFromTrack(ParcelableTrack track)
     {
-        mViewHolder.mArtistText.setText(track.getArtistName());
-        mViewHolder.mAlbumText.setText(track.getAlbumName());
-        mViewHolder.mTrackText.setText(track.getTrackName());
         mViewHolder.mAlbumArtImage.setImageBitmap(null);
 
-        mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_pause);
+        if(track == null)
+        {
+            mViewHolder.mArtistText.setText("LOADING...");
+            mViewHolder.mAlbumText.setText("");
+            mViewHolder.mTrackText.setText("");
+            mViewHolder.mAlbumArtImage.setImageResource(R.mipmap.ic_launcher);
+        }
+        else
+        {
+            mViewHolder.mArtistText.setText(track.getArtistName());
+            mViewHolder.mAlbumText.setText(track.getAlbumName());
+            mViewHolder.mTrackText.setText(track.getTrackName());
 
-        // If an image is available load it, picasso is already async
-        Picasso.with(getActivity())
-                .load(track.getAlbumArt())
-                .placeholder(R.mipmap.ic_launcher)
-                .noFade()
-                .fit()
-                .centerInside()
-                .into(mViewHolder.mAlbumArtImage);
+            mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_pause);
 
-        // In our case, always a maximum of 30 seconds
-        //mViewHolder.mEndTimeText.setText(formatDurationSeconds((int)(track.getDuration() / 1000)));
-        int maxTime = track.getDuration() < 30 ? (int)(track.getDuration() / 1000) : 30;
-        mViewHolder.mEndTimeText.setText(formatDurationSeconds(maxTime));
+            // If an image is available load it, picasso is already async
+            Picasso.with(getActivity())
+                    .load(track.getAlbumArt())
+                    .placeholder(R.mipmap.ic_launcher)
+                    .noFade()
+                    .fit()
+                    .centerInside()
+                    .into(mViewHolder.mAlbumArtImage);
 
-        mViewHolder.mSeekBar.setMax(maxTime);
+            // In our case, always a maximum of 30 seconds
+            //mViewHolder.mEndTimeText.setText(formatDurationSeconds((int)(track.getDuration() / 1000)));
+            int maxTime = track.getDuration() < 30 ? (int)(track.getDuration() / 1000) : 30;
+            mViewHolder.mEndTimeText.setText(formatDurationSeconds(maxTime));
+
+            mViewHolder.mSeekBar.setMax(maxTime);
+
+        }
         mViewHolder.mSeekBar.setProgress(0);
     }
 
