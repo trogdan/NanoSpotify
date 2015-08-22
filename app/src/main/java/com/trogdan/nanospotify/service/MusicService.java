@@ -27,12 +27,12 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
-import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.trogdan.nanospotify.PlayerFragment;
@@ -42,13 +42,13 @@ import com.trogdan.nanospotify.data.ParcelableTrack;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Service that handles media playback. This is the Service through which we perform all the media
- * handling in our application. Upon initialization, it starts a {@link MusicRetriever} to scan
- * the user's media. Then, it waits for Intents (which come from our main activity,
- * {@link MainActivity}, which signal the service to perform specific operations: Play, Pause,
- * Rewind, Skip, etc.
+ * handling in our application.  It waits for Intents (which come from one of our activities,
+ * which signal the service to perform specific operations: Play, Pause, Rewind, Skip, etc.
  */
 public class MusicService extends Service implements OnCompletionListener, OnPreparedListener,
                 OnErrorListener, MusicFocusable {
@@ -64,9 +64,15 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     public static final String ACTION_PLAY = "com.trogdan.nanospotify.musicservice.action.PLAY";
     public static final String ACTION_PAUSE = "com.trogdan.nanospotify.musicservice.action.PAUSE";
     public static final String ACTION_STOP = "com.trogdan.nanospotify.musicservice.action.STOP";
-    public static final String ACTION_SKIP = "com.trogdan.nanospotify.musicservice.action.SKIP";
+    public static final String ACTION_NEXT = "com.trogdan.nanospotify.musicservice.action.NEXT";
     public static final String ACTION_PREVIOUS = "com.trogdan.nanospotify.musicservice.action.PREVIOUS";
+    public static final String ACTION_SEEK = "com.trogdan.nanospotify.musicservice.action.SEEK";
     public static final String ACTION_URLS = "com.trogdan.nanospotify.musicservice.action.URLS";
+
+    // These are local broadcasts used to notify our UI of current media service state.
+    public static final String STATUS_SERVICE = "com.trogdan.noanospotify.musicservice.status";
+    public static final String STATUS_CURRENT_POSITION = "com.trogdan.noanospotify.musicservice.status.CURRENT_POSITION";
+    public static final String STATUS_CURRENT_TRACK = "com.trogdan.noanospotify.musicservice.status.CURRENT_TRACK";
 
     // The volume we set the media player to when we lose audio focus, but are allowed to reduce
     // the volume instead of stopping playback.
@@ -124,8 +130,17 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
 
     Notification mNotification = null;
 
+    // Keep track of the track list and current track send by a URI update
     private ArrayList<ParcelableTrack> mTrackList;
     private int mCurrentTrack;
+
+    // Used to send status back to UI
+    private LocalBroadcastManager mBroadcaster;
+
+    // Used to fire position updates
+    private TimerTask mPositionTimerTask;
+    private Timer mPositionTimer;
+    private Intent mPositionIntent;
 
     /**
      * Makes sure the media player exists and has been reset. This will create the media player
@@ -168,6 +183,9 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             mAudioFocusHelper = new AudioFocusHelper(getApplicationContext(), this);
         else
             mAudioFocus = AudioFocus.Focused; // no focus feature, so we always "have" audio focus
+
+        // Create the mBroadcaster to send state back to UI
+        mBroadcaster = LocalBroadcastManager.getInstance(this);
     }
 
     /**
@@ -178,13 +196,14 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-            String action = intent.getAction();
+        String action = intent.getAction();
         if (action.equals(ACTION_TOGGLE_PLAYBACK)) processTogglePlaybackRequest();
         else if (action.equals(ACTION_PLAY)) processPlayRequest();
         else if (action.equals(ACTION_PAUSE)) processPauseRequest();
-        else if (action.equals(ACTION_SKIP)) processSkipRequest();
+        else if (action.equals(ACTION_NEXT)) processNextRequest();
         else if (action.equals(ACTION_PREVIOUS)) processPreviousRequest();
         else if (action.equals(ACTION_STOP)) processStopRequest();
+        else if (action.equals(ACTION_SEEK)) processSeekRequest(intent);
         else if (action.equals(ACTION_URLS)) processAddRequest(intent);
 
         return START_NOT_STICKY; // Means we started the service, but don't want it to
@@ -211,6 +230,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             mState = State.Playing;
             setUpAsForeground(mSongTitle + " (playing)");
             configAndStartMediaPlayer();
+            startTimer();
         }
     }
 
@@ -221,13 +241,16 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             mPlayer.pause();
             relaxResources(false); // while paused, we always retain the MediaPlayer
             // do not give up audio focus
+            // Halt updates to UI
+            stopTimer();
         }
 
     }
 
-    void processSkipRequest() {
+    void processNextRequest() {
         if (mState == State.Playing || mState == State.Paused) {
             tryToGetAudioFocus();
+            processPauseRequest();
             playNextSong();
         }
     }
@@ -235,12 +258,15 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     void processPreviousRequest() {
         if (mState == State.Playing || mState == State.Paused) {
             tryToGetAudioFocus();
+            processPauseRequest();
             playPreviousSong();
         }
     }
 
     void processStopRequest() {
         processStopRequest(false);
+        // Halt updates to UI
+        stopTimer();
     }
 
     void processStopRequest(boolean force) {
@@ -253,6 +279,45 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
 
             // service is no longer necessary. Will be started again if needed.
             stopSelf();
+        }
+    }
+    void processSeekRequest(Intent intent) {
+        final boolean wasPlaying = (mState == State.Playing);
+
+        if (mState == State.Playing)
+        {
+            processPauseRequest();
+        }
+        if (mState == State.Paused) {
+            int position = intent.getIntExtra(PlayerFragment.PLAYERSEEK_ARG, 0);
+
+            mPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                @Override
+                public void onSeekComplete(MediaPlayer mediaPlayer) {
+
+                    mPositionIntent.putExtra(STATUS_CURRENT_POSITION, mPlayer.getCurrentPosition());
+                    mBroadcaster.sendBroadcast(mPositionIntent);
+
+                    if (wasPlaying)
+                        processPlayRequest();
+                }
+            });
+
+            mPlayer.seekTo(position);
+        }
+    }
+
+    void processAddRequest(Intent intent) {
+        if (mState == State.Playing)
+        {
+            processPauseRequest();
+        }
+
+        if (mState == State.Paused || mState == State.Stopped) {
+            final Bundle args = intent.getExtras();
+
+            mCurrentTrack = args.getInt(PlayerFragment.PLAYERFIRSTTRACK_ARG);
+            mTrackList = args.getParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG);
         }
     }
 
@@ -307,18 +372,6 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
         if (!mPlayer.isPlaying()) mPlayer.start();
     }
 
-    void processAddRequest(Intent intent) {
-        // user wants to play a song directly by URL or path. The URL or path comes in the "data"
-        // part of the Intent. This Intent is sent by {@link MainActivity} after the user
-        // specifies the URL/path via an alert box.
-        if (mState == State.Playing || mState == State.Paused || mState == State.Stopped) {
-            final Bundle args = intent.getExtras();
-
-            mCurrentTrack = args.getInt(PlayerFragment.PLAYERFIRSTTRACK_ARG);
-            mTrackList = args.getParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG);
-        }
-    }
-
     void tryToGetAudioFocus() {
         if (mAudioFocus != AudioFocus.Focused && mAudioFocusHelper != null
                         && mAudioFocusHelper.requestFocus())
@@ -355,6 +408,8 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             // the Wifi radio from going to sleep while the song is playing. If, on the other hand,
             // we are *not* streaming, we want to release the lock if we were holding it before.
             mWifiLock.acquire();
+
+            startTimer();
         }
         catch (IOException ex) {
             Log.e("MusicService", "IOException playing next song: " + ex.getMessage());
@@ -453,7 +508,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             configAndStartMediaPlayer();
     }
 
-    @Override
+   @Override
     public void onDestroy() {
         // Service is being killed, so make sure we release our resources
         mState = State.Stopped;
@@ -464,5 +519,26 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     @Override
     public IBinder onBind(Intent arg0) {
         return null;
+    }
+
+    private class DurationTimerTask extends TimerTask{
+        @Override
+        public void run() {
+            mPositionIntent.putExtra(STATUS_CURRENT_POSITION, mPlayer.getCurrentPosition());
+            mBroadcaster.sendBroadcast(mPositionIntent);
+        }
+    }
+
+    public void startTimer() {
+        if(mPositionIntent == null)
+            mPositionIntent = new Intent(STATUS_SERVICE);
+
+        mPositionTimer = new Timer();
+        mPositionTimerTask = new DurationTimerTask();
+        mPositionTimer.schedule(mPositionTimerTask, 0, 1000);
+    }
+
+    public void stopTimer() {
+        mPositionTimer.cancel();
     }
 }

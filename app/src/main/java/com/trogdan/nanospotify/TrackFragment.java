@@ -14,7 +14,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.trogdan.nanospotify.data.ParcelableTrack;
-import com.trogdan.nanospotify.data.ParcelableTrackContainer;
 
 import java.util.ArrayList;
 import java.util.HashMap;

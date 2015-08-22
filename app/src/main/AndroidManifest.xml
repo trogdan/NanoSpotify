@@ -39,13 +39,11 @@
                 <action android:name="com.trogdan.nanospotify.musicservice.action.TOGGLE_PLAYBACK" />
                 <action android:name="com.trogdan.nanospotify.musicservice.action.PLAY" />
                 <action android:name="com.trogdan.nanospotify.musicservice.action.PAUSE" />
-                <action android:name="com.trogdan.nanospotify.musicservice.action.SKIP" />
-                <action android:name="com.trogdan.nanospotify.musicservice.action.REWIND" />
+                <action android:name="com.trogdan.nanospotify.musicservice.action.NEXT" />
+                <action android:name="com.trogdan.nanospotify.musicservice.action.PREVIOUS" />
                 <action android:name="com.trogdan.nanospotify.musicservice.action.STOP" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.trogdan.nanospotify.musicservice.action.URL" />
-                <data android:scheme="http" />
+                <action android:name="com.trogdan.nanospotify.musicservice.action.SEEK" />
+                <action android:name="com.trogdan.nanospotify.musicservice.action.URLS" />
             </intent-filter>
         </service>
     </application>
