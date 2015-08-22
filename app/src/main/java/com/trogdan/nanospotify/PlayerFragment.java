@@ -86,10 +86,21 @@ public class PlayerFragment extends DialogFragment {
         mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                int position = intent.getIntExtra(MusicService.STATUS_CURRENT_POSITION, 0);
-                position /= 1000;
-                mViewHolder.mCurrentTimeText.setText(formatDurationSeconds(position));
-                mViewHolder.mSeekBar.setProgress(position);
+                if(intent.hasExtra(MusicService.STATUS_CURRENT_POSITION))
+                {
+                    int position = intent.getIntExtra(MusicService.STATUS_CURRENT_POSITION, 0);
+                    position /= 1000;
+                    mViewHolder.mCurrentTimeText.setText(formatDurationSeconds(position));
+                    mViewHolder.mSeekBar.setProgress(position);
+                }
+                if(intent.hasExtra(MusicService.STATUS_CURRENT_TRACK))
+                {
+                    int newTrack = intent.getIntExtra(MusicService.STATUS_CURRENT_TRACK, 0);
+                    if (newTrack != mCurrentTrack) {
+                        mCurrentTrack = newTrack;
+                        updateViewsFromTrack(mTrackList.get(mCurrentTrack));
+                    }
+                }
             }
         };
 

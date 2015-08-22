@@ -140,7 +140,6 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     // Used to fire position updates
     private TimerTask mPositionTimerTask;
     private Timer mPositionTimer;
-    private Intent mPositionIntent;
 
     /**
      * Makes sure the media player exists and has been reset. This will create the media player
@@ -294,9 +293,9 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             mPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
                 @Override
                 public void onSeekComplete(MediaPlayer mediaPlayer) {
-
-                    mPositionIntent.putExtra(STATUS_CURRENT_POSITION, mPlayer.getCurrentPosition());
-                    mBroadcaster.sendBroadcast(mPositionIntent);
+                    final Intent i = new Intent(STATUS_SERVICE);
+                    i.putExtra(STATUS_CURRENT_POSITION, mPlayer.getCurrentPosition());
+                    mBroadcaster.sendBroadcast(i);
 
                     if (wasPlaying)
                         processPlayRequest();
@@ -408,6 +407,10 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             // the Wifi radio from going to sleep while the song is playing. If, on the other hand,
             // we are *not* streaming, we want to release the lock if we were holding it before.
             mWifiLock.acquire();
+
+            final Intent i = new Intent(STATUS_SERVICE);
+            i.putExtra(STATUS_CURRENT_TRACK, mCurrentTrack);
+            mBroadcaster.sendBroadcast(i);
 
             startTimer();
         }
@@ -522,6 +525,8 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     }
 
     private class DurationTimerTask extends TimerTask{
+        private Intent mPositionIntent = new Intent(STATUS_SERVICE);
+
         @Override
         public void run() {
             mPositionIntent.putExtra(STATUS_CURRENT_POSITION, mPlayer.getCurrentPosition());
@@ -530,9 +535,6 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     }
 
     public void startTimer() {
-        if(mPositionIntent == null)
-            mPositionIntent = new Intent(STATUS_SERVICE);
-
         mPositionTimer = new Timer();
         mPositionTimerTask = new DurationTimerTask();
         mPositionTimer.schedule(mPositionTimerTask, 0, 1000);
