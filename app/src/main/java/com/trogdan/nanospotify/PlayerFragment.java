@@ -34,12 +34,15 @@ public class PlayerFragment extends DialogFragment {
 
     public static final String PLAYERFRAGMENT_TAG = "PFTAG";
 
+    public static final String PLAYERS_ARGS = "PFARGS";
     public static final String PLAYERTRACKS_ARG = "PTSARG";
-    public static final String PLAYERFIRSTTRACK_ARG = "PFTARG";
+    public static final String PLAYERPLAYTRACK_ARG = "PFTARG";
     public static final String PLAYERSEEK_ARG = "PSARG";
+    public static final String PLAYERCHANGE_ARG = "PCARG";
 
     private ViewHolder mViewHolder;
     private ArrayList<ParcelableTrack> mTrackList;
+    private ArrayList<ParcelableTrack> mPreviousList;
     private int mCurrentTrack;
 
     private BroadcastReceiver mReceiver;
@@ -169,7 +172,7 @@ public class PlayerFragment extends DialogFragment {
             public void onClick(View v) {
                 // TODO toast if no more songs
                 // TODO share current track number with MusicService to prevent data mismatch
-                if(mCurrentTrack + 1 >= mTrackList.size()) return;
+                if (mCurrentTrack + 1 >= mTrackList.size()) return;
                 mCurrentTrack++;
 
                 updateViewsFromTrack(mTrackList.get(mCurrentTrack));
@@ -184,7 +187,7 @@ public class PlayerFragment extends DialogFragment {
 
         final Bundle args = getArguments();
         if (args != null) {
-            mCurrentTrack = args.getInt(PLAYERFIRSTTRACK_ARG);
+            mCurrentTrack = args.getInt(PLAYERPLAYTRACK_ARG);
             mTrackList = args.getParcelableArrayList(PLAYERTRACKS_ARG);
 
             final ParcelableTrack track = mTrackList.get(mCurrentTrack);
@@ -196,13 +199,22 @@ public class PlayerFragment extends DialogFragment {
             // Send an intent with the URIs of the songs to load. This is expected by MusicService.
             final Intent i = new Intent(getActivity(), MusicService.class);
             i.setAction(MusicService.ACTION_URLS);
-            i.putExtras(args);
+
+            // Only include trackList if different
+            if (args.getBoolean(PLAYERCHANGE_ARG)) {
+                i.putExtras(args);
+            }
+            else
+            {
+                i.putExtra(PLAYERPLAYTRACK_ARG, mCurrentTrack);
+            }
             getActivity().startService(i);
 
             // And start
             i.setAction(MusicService.ACTION_PLAY);
             getActivity().startService(i);
 
+            mPreviousList = mTrackList;
         }
 
         setStyle(DialogFragment.STYLE_NORMAL, R.style.PlayerDialog);
@@ -248,6 +260,13 @@ public class PlayerFragment extends DialogFragment {
             mViewHolder.mTogglePlaybackButton.setTag(android.R.drawable.ic_media_pause);
         }
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBundle(PLAYERS_ARGS, getArguments());
     }
 
     private void updateViewsFromTrack(ParcelableTrack track)

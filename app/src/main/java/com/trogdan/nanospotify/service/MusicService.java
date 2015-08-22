@@ -133,6 +133,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     // Keep track of the track list and current track send by a URI update
     private ArrayList<ParcelableTrack> mTrackList;
     private int mCurrentTrack;
+    private int mNextTrack;
 
     // Used to send status back to UI
     private LocalBroadcastManager mBroadcaster;
@@ -263,9 +264,10 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     }
 
     void processStopRequest() {
-        processStopRequest(false);
         // Halt updates to UI
         stopTimer();
+
+        processStopRequest(false);
     }
 
     void processStopRequest(boolean force) {
@@ -280,6 +282,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             stopSelf();
         }
     }
+
     void processSeekRequest(Intent intent) {
         final boolean wasPlaying = (mState == State.Playing);
 
@@ -315,8 +318,27 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
         if (mState == State.Paused || mState == State.Stopped) {
             final Bundle args = intent.getExtras();
 
-            mCurrentTrack = args.getInt(PlayerFragment.PLAYERFIRSTTRACK_ARG);
-            mTrackList = args.getParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG);
+            // We explay a play request to come momentarily, there shouldn't be a way for the user
+            // to unpause before that
+            mNextTrack = args.getInt(PlayerFragment.PLAYERPLAYTRACK_ARG);
+            final ArrayList nextList = args.getParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG);
+
+            if (nextList != null)
+            {
+                mState = State.Stopped;
+                relaxResources(true);
+
+                mTrackList = nextList;
+                mCurrentTrack = mNextTrack;
+            }
+            else if (mNextTrack != mCurrentTrack)
+            {
+                // Let's say we're stopped, so that the expected play operation will play the new track
+                mState = State.Stopped;
+
+                mCurrentTrack = mNextTrack;
+            }
+
         }
     }
 
@@ -412,6 +434,8 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
             i.putExtra(STATUS_CURRENT_TRACK, mCurrentTrack);
             mBroadcaster.sendBroadcast(i);
 
+            mNextTrack = mCurrentTrack + 1;
+
             startTimer();
         }
         catch (IOException ex) {
@@ -421,10 +445,11 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     }
 
     void playNextSong() {
-        if (mCurrentTrack + 1 >= mTrackList.size()) return;
-        mCurrentTrack++;
+        if (mNextTrack >= mTrackList.size()) return;
+        mCurrentTrack = mNextTrack;
         playSong(mCurrentTrack);
     }
+
     void playPreviousSong() {
         if (mCurrentTrack - 1 < 0) return;
         mCurrentTrack--;
@@ -529,8 +554,10 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
 
         @Override
         public void run() {
-            mPositionIntent.putExtra(STATUS_CURRENT_POSITION, mPlayer.getCurrentPosition());
-            mBroadcaster.sendBroadcast(mPositionIntent);
+            if(mPlayer != null) {
+                mPositionIntent.putExtra(STATUS_CURRENT_POSITION, mPlayer.getCurrentPosition());
+                mBroadcaster.sendBroadcast(mPositionIntent);
+            }
         }
     }
 
@@ -541,6 +568,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     }
 
     public void stopTimer() {
-        mPositionTimer.cancel();
+        if(mPositionTimer != null)
+            mPositionTimer.cancel();
     }
 }

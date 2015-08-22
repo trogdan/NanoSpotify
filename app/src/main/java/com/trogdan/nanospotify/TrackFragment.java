@@ -63,18 +63,25 @@ public class TrackFragment extends Fragment {
            artist, passing the spotify ID of that track.
          */
         trackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            ArrayList<ParcelableTrack> trackList;
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                ArrayList<ParcelableTrack> trackList = new ArrayList<ParcelableTrack>();
-                for(int i = 0; i < parent.getCount(); i++)
+                if (trackList == null)
                 {
-                    final Track track = (Track) parent.getItemAtPosition(i);
-                    final ParcelableTrack parcelableTrack = new ParcelableTrack(track);
-                    trackList.add(parcelableTrack);
-                }
+                    trackList= new ArrayList<>();
 
-                showPlayerDialog(trackList, position);
+                    for(int i = 0; i < parent.getCount(); i++)
+                    {
+                        final Track track = (Track) parent.getItemAtPosition(i);
+                        final ParcelableTrack parcelableTrack = new ParcelableTrack(track);
+                        trackList.add(parcelableTrack);
+                    }
+                    showPlayerDialog(trackList, position, true);
+                }
+                else
+                    showPlayerDialog(trackList, position, false);
+
             }
         });
 
@@ -86,12 +93,12 @@ public class TrackFragment extends Fragment {
         return rootView;
     }
 
-    public void showPlayerDialog(ArrayList<ParcelableTrack> trackList, int firstTrack) {
+    public void showPlayerDialog(ArrayList<ParcelableTrack> trackList, int currentTrack, boolean changed) {
 
         final Bundle args = new Bundle();
         args.putParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG, trackList);
-        args.putInt(PlayerFragment.PLAYERFIRSTTRACK_ARG, firstTrack);
-
+        args.putInt(PlayerFragment.PLAYERPLAYTRACK_ARG, currentTrack);
+        args.putBoolean(PlayerFragment.PLAYERCHANGE_ARG, changed);
         if (m_twoPane) {
             final FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
 
