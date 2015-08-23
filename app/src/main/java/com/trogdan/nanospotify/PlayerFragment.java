@@ -199,7 +199,7 @@ public class PlayerFragment extends DialogFragment {
             final Intent i = new Intent(getActivity(), MusicService.class);
             i.setAction(MusicService.ACTION_URLS);
 
-            // Only include trackList if different
+            // Only include m_trackList if different
             if (args.getBoolean(PLAYERCHANGE_ARG)) {
                 i.putExtras(args);
             }

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -44,6 +45,8 @@ public class TrackFragment extends Fragment {
     private FetchTracksTask m_fetchTracksTask;
     private String m_previousArtistId;
     private boolean m_twoPane;
+    private ArrayList<ParcelableTrack> m_trackList;
+    private int m_currentTrack;
 
     public TrackFragment() {
     }
@@ -63,24 +66,25 @@ public class TrackFragment extends Fragment {
            artist, passing the spotify ID of that track.
          */
         trackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            ArrayList<ParcelableTrack> trackList;
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                if (trackList == null)
-                {
-                    trackList= new ArrayList<>();
 
+                m_currentTrack = position;
+
+                if (m_trackList == null)
+                {
+                    m_trackList = new ArrayList<>();
                     for(int i = 0; i < parent.getCount(); i++)
                     {
                         final Track track = (Track) parent.getItemAtPosition(i);
                         final ParcelableTrack parcelableTrack = new ParcelableTrack(track);
-                        trackList.add(parcelableTrack);
+                        m_trackList.add(parcelableTrack);
                     }
-                    showPlayerDialog(trackList, position, true);
+                    showPlayerDialog(m_trackList, position, true);
                 }
                 else
-                    showPlayerDialog(trackList, position, false);
+                    showPlayerDialog(m_trackList, position, false);
 
             }
         });
@@ -93,12 +97,13 @@ public class TrackFragment extends Fragment {
         return rootView;
     }
 
-    public void showPlayerDialog(ArrayList<ParcelableTrack> trackList, int currentTrack, boolean changed) {
+    private void showPlayerDialog(ArrayList<ParcelableTrack> trackList, int currentTrack, boolean changed) {
 
         final Bundle args = new Bundle();
         args.putParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG, trackList);
         args.putInt(PlayerFragment.PLAYERPLAYTRACK_ARG, currentTrack);
         args.putBoolean(PlayerFragment.PLAYERCHANGE_ARG, changed);
+
         if (m_twoPane) {
             final FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
 
@@ -113,6 +118,10 @@ public class TrackFragment extends Fragment {
         }
     }
 
+    public void showPlayerDialog()
+    {
+        showPlayerDialog(m_trackList, m_currentTrack, false);
+    }
 
     public void getTracks(String artistId) {
         // No point spinning up a new query if it's a repeat

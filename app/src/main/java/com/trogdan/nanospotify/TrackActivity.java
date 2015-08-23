@@ -9,13 +9,15 @@ import android.view.MenuItem;
 
 public class TrackActivity extends ActionBarActivity {
 
+    private TrackFragment fragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
 
         if (savedInstanceState == null) {
-            final TrackFragment fragment = new TrackFragment();
+            fragment = new TrackFragment();
 
             final Intent i = getIntent();
             if( i != null && i.hasExtra(Intent.EXTRA_TEXT)) {
@@ -39,12 +41,17 @@ public class TrackActivity extends ActionBarActivity {
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if(id == R.id.action_open_player)
+        {
+            fragment.showPlayerDialog();
+        }
 
         return super.onOptionsItemSelected(item);
     }
+
 }

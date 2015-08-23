@@ -1,7 +1,5 @@
 package com.trogdan.nanospotify;
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,7 +10,7 @@ public class MainActivity extends ActionBarActivity {
 
     private final String ARTISTFRAGMENT_TAG = "AFTAG";
 
-
+    private TrackFragment trackFragment;
     private boolean mTwoPane;
 
     @Override
@@ -37,8 +35,9 @@ public class MainActivity extends ActionBarActivity {
             // adding or replacing the detail fragment using a
             // fragment transaction.
             if (savedInstanceState == null) {
+                trackFragment = new TrackFragment();
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.track_container, new TrackFragment(), TrackFragment.TRACKFRAGMENT_TAG)
+                        .replace(R.id.track_container, trackFragment, TrackFragment.TRACKFRAGMENT_TAG)
                         .commit();
             }
         }
@@ -54,11 +53,15 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if(id == R.id.action_open_player)
+        {
+            trackFragment.showPlayerDialog();
+        }
 
         return super.onOptionsItemSelected(item);
     }
+
 
 }
