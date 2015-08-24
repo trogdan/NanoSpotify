@@ -20,10 +20,8 @@ public class MusicProvider extends ContentProvider {
 
     static final int ARTIST = 100;
     static final int ARTIST_IMAGE = 101;
-    static final int ARTISTS_QUERY = 102;
     static final int ARTISTS_QUERY_WITH_ARTIST = 103;
     static final int ARTISTS_QUERY_WITH_ARTIST_AND_HEIGHT = 104;
-    static final int TRACK = 300;
 
     private static final SQLiteQueryBuilder sArtistQueryBuilder;
 
@@ -32,12 +30,7 @@ public class MusicProvider extends ContentProvider {
 
         //This is an inner join
         sArtistQueryBuilder.setTables(
-                MusicContract.ArtistQueryEntry.TABLE_NAME + " INNER JOIN " +
-                        MusicContract.ArtistEntry.TABLE_NAME +
-                        " ON " + MusicContract.ArtistQueryEntry.TABLE_NAME +
-                        "." + MusicContract.ArtistQueryEntry.COLUMN_ARTIST_KEY +
-                        " = " + MusicContract.ArtistEntry.TABLE_NAME +
-                        "." + MusicContract.ArtistEntry._ID + " INNER JOIN " +
+                MusicContract.ArtistEntry.TABLE_NAME + " INNER JOIN " +
                         MusicContract.ArtistImageEntry.TABLE_NAME +
                         " ON " + MusicContract.ArtistImageEntry.TABLE_NAME +
                         "." + MusicContract.ArtistImageEntry.COLUMN_ARTIST_KEY +
@@ -46,8 +39,8 @@ public class MusicProvider extends ContentProvider {
     }
 
     private static final String sArtistQuerySelection =
-            MusicContract.ArtistQueryEntry.TABLE_NAME +
-                    "." + MusicContract.ArtistQueryEntry.COLUMN_QUERY + " = ? AND CASE WHEN (" +
+            MusicContract.ArtistEntry.TABLE_NAME +
+                    "." + MusicContract.ArtistEntry.COLUMN_QUERY + " = ? AND CASE WHEN (" +
                     MusicContract.ArtistImageEntry.TABLE_NAME +
                     "." + MusicContract.ArtistImageEntry.COLUMN_HEIGHT + " - ? ) > 0 THEN ( SELECT MIN ( " +
                     MusicContract.ArtistImageEntry.TABLE_NAME +
@@ -56,15 +49,6 @@ public class MusicProvider extends ContentProvider {
                     MusicContract.ArtistImageEntry.TABLE_NAME +
                     "." + MusicContract.ArtistImageEntry.COLUMN_HEIGHT + " ) FROM " +
                     MusicContract.ArtistImageEntry.TABLE_NAME + ") END";
-
-
-//    private static final String sTrackSelection =
-//            MusicContract.TrackEntry.TABLE_NAME +
-//                    "." + MusicContract.TrackEntry.COLUMN_ARTIST_KEY + " = ? ";
-//
-//    private static final String sAlbumSelection =
-//            MusicContract.AlbumEntry.TABLE_NAME +
-//                    "." + MusicContract.AlbumEntry._ID + " = ? ";
 
     static UriMatcher buildUriMatcher() {
         // 1) The code passed into the constructor represents the code to return for the root
@@ -75,12 +59,12 @@ public class MusicProvider extends ContentProvider {
         // WeatherContract to help define the types to the UriMatcher.
         sURIMatcher.addURI(
                 MusicContract.CONTENT_AUTHORITY,
-                MusicContract.PATH_ARTISTS + "/*",
+                MusicContract.PATH_ARTIST + "/*",
                 ARTISTS_QUERY_WITH_ARTIST);
 
         sURIMatcher.addURI(
                 MusicContract.CONTENT_AUTHORITY,
-                MusicContract.PATH_ARTISTS + "/*/#",
+                MusicContract.PATH_ARTIST + "/*/#",
                 ARTISTS_QUERY_WITH_ARTIST_AND_HEIGHT);
 
         sURIMatcher.addURI(
@@ -93,18 +77,13 @@ public class MusicProvider extends ContentProvider {
                 MusicContract.PATH_ARTIST,
                 ARTIST);
 
-        sURIMatcher.addURI(
-                MusicContract.CONTENT_AUTHORITY,
-                MusicContract.PATH_ARTISTS,
-                ARTISTS_QUERY);
-
         // 3) Return the new matcher!
         return sURIMatcher;
     }
 
     private Cursor getArtistsByQuerySetting(Uri uri, String[] projection, String sortOrder) {
-        String artistSetting = MusicContract.ArtistQueryEntry.getArtistQuerySettingFromUri(uri);
-        long imageHeight = MusicContract.ArtistQueryEntry.getImageHeightSettingFromUri(uri);
+        String artistSetting = MusicContract.ArtistEntry.getArtistQuerySettingFromUri(uri);
+        long imageHeight = MusicContract.ArtistEntry.getImageHeightSettingFromUri(uri);
 
         String[] selectionArgs;
         String selection;
@@ -136,11 +115,9 @@ public class MusicProvider extends ContentProvider {
 
         switch (match) {
             case ARTISTS_QUERY_WITH_ARTIST_AND_HEIGHT:
-                return MusicContract.ArtistQueryEntry.CONTENT_ITEM_TYPE;
+                return MusicContract.ArtistEntry.CONTENT_ITEM_TYPE;
             case ARTISTS_QUERY_WITH_ARTIST:
-                return MusicContract.ArtistQueryEntry.CONTENT_ITEM_TYPE;
-            case ARTISTS_QUERY:
-                return MusicContract.ArtistQueryEntry.CONTENT_TYPE;
+                return MusicContract.ArtistEntry.CONTENT_ITEM_TYPE;
             case ARTIST:
                 return MusicContract.ArtistEntry.CONTENT_TYPE;
             case ARTIST_IMAGE:
@@ -157,23 +134,23 @@ public class MusicProvider extends ContentProvider {
         // and query the database accordingly.
         Cursor retCursor;
         switch (sUriMatcher.match(uri)) {
-            // "artists/*/*"
+            // "artist/*/*"
             case ARTISTS_QUERY_WITH_ARTIST_AND_HEIGHT:
             {
                 retCursor = getArtistsByQuerySetting(uri, projection, sortOrder);
                 break;
             }
-            // "artists/*"
+            // "artist/*"
             case ARTISTS_QUERY_WITH_ARTIST:
             {
                 retCursor = getArtistsByQuerySetting(uri, projection, sortOrder);
                 break;
             }
-            // "artists"
-            case ARTISTS_QUERY:
+            // "artist"
+            case ARTIST:
             {
                 retCursor = mOpenHelper.getReadableDatabase().query(
-                        MusicContract.ArtistQueryEntry.TABLE_NAME,
+                        MusicContract.ArtistEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -188,20 +165,6 @@ public class MusicProvider extends ContentProvider {
             {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         MusicContract.ArtistImageEntry.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            }
-            // "artist"
-            case ARTIST:
-            {
-                retCursor = mOpenHelper.getReadableDatabase().query(
-                        MusicContract.ArtistEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -241,14 +204,6 @@ public class MusicProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            case ARTISTS_QUERY: {
-                long _id = db.insert(MusicContract.ArtistQueryEntry.TABLE_NAME, null, values);
-                if ( _id > 0 )
-                    returnUri = MusicContract.ArtistQueryEntry.buildArtistQueryUri(_id);
-                else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
-                break;
-            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -271,10 +226,6 @@ public class MusicProvider extends ContentProvider {
             case ARTIST_IMAGE:
                 rowsDeleted = db.delete(
                         MusicContract.ArtistImageEntry.TABLE_NAME, selection, selectionArgs);
-                break;
-            case ARTISTS_QUERY:
-                rowsDeleted = db.delete(
-                        MusicContract.ArtistQueryEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -300,10 +251,6 @@ public class MusicProvider extends ContentProvider {
                 break;
             case ARTIST_IMAGE:
                 rowsUpdated = db.update(MusicContract.ArtistImageEntry.TABLE_NAME, values, selection,
-                        selectionArgs);
-                break;
-            case ARTISTS_QUERY:
-                rowsUpdated = db.update(MusicContract.ArtistQueryEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
             default:

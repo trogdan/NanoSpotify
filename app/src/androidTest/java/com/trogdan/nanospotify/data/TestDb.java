@@ -34,7 +34,6 @@ public class TestDb extends AndroidTestCase {
         final HashSet<String> tableNameHashSet = new HashSet<String>();
         tableNameHashSet.add(MusicContract.ArtistEntry.TABLE_NAME);
         tableNameHashSet.add(MusicContract.ArtistImageEntry.TABLE_NAME);
-        tableNameHashSet.add(MusicContract.ArtistQueryEntry.TABLE_NAME);
 
         mContext.deleteDatabase(MusicDBHelper.DATABASE_NAME);
         SQLiteDatabase db = new MusicDBHelper(this.mContext).getWritableDatabase();
@@ -141,56 +140,6 @@ public class TestDb extends AndroidTestCase {
 
         // Sixth Step: Close cursor and database
         imageCursor.close();
-        dbHelper.close();
-    }
-
-    public void testArtistQueryTable() {
-        // First insert the artist, and then use the locationRowId to insert
-        // the image. Make sure to cover as many failure cases as you can.
-
-        long artistRowId = insertArtist();
-
-        // Make sure we have a valid row ID.
-        assertFalse("Error: Location Not Inserted Correctly", artistRowId == -1L);
-
-        // First step: Get reference to writable database
-        // If there's an error in those massive SQL table creation Strings,
-        // errors will be thrown here when you try to get a writable database.
-        MusicDBHelper dbHelper = new MusicDBHelper(mContext);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        // Second Step (artist query): Create query values
-        ContentValues queryValues = TestUtilities.createQueryValues(artistRowId);
-
-        // Third Step (artist query): Insert ContentValues into database and get a row ID back
-        long queryRowId = db.insert(MusicContract.ArtistQueryEntry.TABLE_NAME, null, queryValues);
-        assertTrue(queryRowId != -1);
-
-        // Fourth Step: Query the database and receive a Cursor back
-        // A cursor is your primary interface to the query results.
-        Cursor queryCursor = db.query(
-                MusicContract.ArtistQueryEntry.TABLE_NAME,  // Table to Query
-                null, // leaving "columns" null just returns all the columns.
-                null, // cols for "where" clause
-                null, // values for "where" clause
-                null, // columns to group by
-                null, // columns to filter by row groups
-                null  // sort order
-        );
-
-        // Move the cursor to the first valid database row and check to see if we have any rows
-        assertTrue("Error: No Records returned from query query", queryCursor.moveToFirst());
-
-        // Fifth Step: Validate the query query
-        TestUtilities.validateCurrentRecord("testInsertReadDb artistQueryEntry failed to validate",
-                queryCursor, queryValues);
-
-        // Move the cursor to demonstrate that there is only one record in the database
-        assertFalse("Error: More than one record returned from query query",
-                queryCursor.moveToNext());
-
-        // Sixth Step: Close cursor and database
-        queryCursor.close();
         dbHelper.close();
     }
 

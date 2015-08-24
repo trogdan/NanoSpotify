@@ -51,6 +51,7 @@ public class TestUtilities extends AndroidTestCase {
         testValues.put(MusicContract.ArtistEntry.COLUMN_NAME, "MarLo");
         testValues.put(MusicContract.ArtistEntry.COLUMN_API_ID, "ABCD1234EF56");
         testValues.put(MusicContract.ArtistEntry.COLUMN_DATE, System.currentTimeMillis() / 1000);
+        testValues.put(MusicContract.ArtistEntry.COLUMN_QUERY, "marlo");
 
         return testValues;
     }
@@ -63,15 +64,6 @@ public class TestUtilities extends AndroidTestCase {
         testValues.put(MusicContract.ArtistImageEntry.COLUMN_HEIGHT, TEST_HEIGHT);
         testValues.put(MusicContract.ArtistImageEntry.COLUMN_WIDTH, TEST_HEIGHT);
         testValues.put(MusicContract.ArtistEntry.COLUMN_DATE, System.currentTimeMillis() / 1000);
-
-        return testValues;
-    }
-
-    static ContentValues createQueryValues(long artistRowId) {
-        ContentValues testValues = new ContentValues();
-        testValues.put(MusicContract.ArtistQueryEntry.COLUMN_ARTIST_KEY, artistRowId);
-        testValues.put(MusicContract.ArtistQueryEntry.COLUMN_DATE, TEST_DATE);
-        testValues.put(MusicContract.ArtistQueryEntry.COLUMN_QUERY, "marlo");
 
         return testValues;
     }

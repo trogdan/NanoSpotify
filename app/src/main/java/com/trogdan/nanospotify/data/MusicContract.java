@@ -12,7 +12,7 @@ public class MusicContract {
 
     public static final String CONTENT_AUTHORITY = "com.trogdan.nanospotify";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
-    public static final String PATH_ARTISTS = "artists";
+
     public static final String PATH_ARTIST = "artist";
     public static final String PATH_ARTIST_IMAGE = "artist_image";
     public static final String PATH_TRACKS = "tracks";
@@ -35,8 +35,30 @@ public class MusicContract {
         // date entered into table as second since the epoch
         public static final String COLUMN_DATE = "date";
 
+        public static final String COLUMN_QUERY = "query";
+
         public static Uri buildArtistUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildArtistQuery(String query) {
+            return CONTENT_URI.buildUpon().appendPath(query).build();
+        }
+        public static Uri buildArtistQueryWithImageHeight(String query, String height) {
+            return CONTENT_URI.buildUpon().appendPath(query)
+                    .appendQueryParameter(ArtistImageEntry.COLUMN_HEIGHT, height).build();
+        }
+
+        public static String getArtistQuerySettingFromUri(Uri uri) {
+            return uri.getPathSegments().get(1);
+        }
+
+        public static long getImageHeightSettingFromUri(Uri uri) {
+            if (uri.getPathSegments().size() > 2)
+            {
+                Long.parseLong(uri.getPathSegments().get(2));
+            }
+            return 0;
         }
     }
 
@@ -65,54 +87,6 @@ public class MusicContract {
 
         public static Uri buildArtistImageUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
-        }
-    }
-
-    public static final class ArtistQueryEntry implements BaseColumns {
-        public static final Uri CONTENT_URI =
-                BASE_CONTENT_URI.buildUpon().appendPath(PATH_ARTISTS).build();
-
-        public static final String CONTENT_TYPE =
-                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ARTISTS;
-        public static final String CONTENT_ITEM_TYPE =
-                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ARTISTS;
-
-        public static final String TABLE_NAME = "artist_query";
-
-        // lookup into artist table
-        public static final String COLUMN_ARTIST_KEY = "artist_id";
-
-        // the query term entered by the user
-        public static final String COLUMN_QUERY= "query";
-
-        // date entered into table as second since the epoch
-        public static final String COLUMN_DATE = "date";
-
-        // the uri provide for the artist pager, not sure if we can use this to optimize later
-        //public static final String COLUMN_URI = "uri";
-
-        public static Uri buildArtistQueryUri(long id) {
-            return ContentUris.withAppendedId(CONTENT_URI, id);
-        }
-        public static Uri buildArtistQuery(String query) {
-            return CONTENT_URI.buildUpon().appendPath(query).build();
-        }
-
-        public static Uri buildArtistQueryWithImageHeight(String query, String height) {
-            return CONTENT_URI.buildUpon().appendPath(query)
-                    .appendQueryParameter(ArtistImageEntry.COLUMN_HEIGHT, height).build();
-        }
-
-        public static String getArtistQuerySettingFromUri(Uri uri) {
-            return uri.getPathSegments().get(1);
-        }
-
-        public static long getImageHeightSettingFromUri(Uri uri) {
-            if (uri.getPathSegments().size() > 2)
-            {
-                Long.parseLong(uri.getPathSegments().get(2));
-            }
-            return 0;
         }
     }
 

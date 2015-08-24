@@ -1,7 +1,12 @@
 package com.trogdan.nanospotify;
 
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -20,10 +25,15 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+
+import com.trogdan.nanospotify.data.MusicContract.ArtistImageEntry;
+import com.trogdan.nanospotify.data.MusicContract.ArtistEntry;
+
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Image;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -43,6 +53,19 @@ public class ArtistFragment extends Fragment {
     private FetchArtistsTask m_fetchArtistsTask;
     private String m_previousArtist;
     private boolean m_twoPane;
+
+    private static final int ARTIST_LOADER = 0;
+
+    private static final String[] ARTIST_COLUMNS = {
+            ArtistEntry.TABLE_NAME + "." + ArtistEntry._ID,
+            ArtistEntry.COLUMN_DATE,
+            ArtistEntry.COLUMN_NAME,
+            ArtistEntry.COLUMN_QUERY,
+            ArtistImageEntry.COLUMN_ARTIST_KEY,
+            ArtistImageEntry.COLUMN_URI,
+            ArtistImageEntry.COLUMN_WIDTH,
+            ArtistImageEntry.COLUMN_HEIGHT
+    };
 
     public ArtistFragment() {
     }
@@ -147,9 +170,60 @@ public class ArtistFragment extends Fragment {
 
     public class FetchArtistsTask extends AsyncTask<String, Void, Void> {
         private final String LOG_TAG = FetchArtistsTask.class.getSimpleName();
+        private final Context mContext;
+
+        public FetchArtistsTask() {
+            mContext = getActivity();
+        }
 
         // Retrofit callbacks are performed on main UI thread, so no onPostExecute
         // needed.
+
+        /**
+         * Helper method to handle update of a artist query into the music database
+         */
+        private void addArtists(String query, ArtistsPager artistsPager) {
+            long queryTime = System.currentTimeMillis();
+
+            // Insert the new query results
+            for (int i = 0; i < artistsPager.artists.items.size(); i++) {
+                Artist artist = artistsPager.artists.items.get(i);
+
+                // Now that the content provider is set up, inserting rows of data is pretty simple.
+                // First create a ContentValues object to hold the data you want to insert.
+                ContentValues values = new ContentValues();
+
+                // Then add the data, along with the corresponding name of the data type,
+                // so the content provider knows what kind of value is being inserted.
+                values.put(ArtistEntry.COLUMN_DATE, queryTime);
+                values.put(ArtistEntry.COLUMN_API_ID, artist.id);
+                values.put(ArtistEntry.COLUMN_NAME, artist.name);
+
+                // Finally, insert data into the database.
+                Uri insertedUri = mContext.getContentResolver().insert(ArtistEntry.CONTENT_URI, values);
+
+                long artistId = ContentUris.parseId(insertedUri);
+
+                for (int j = 0; j < artist.images.size(); j++) {
+                    Image image = artist.images.get(j);
+
+                    values = new ContentValues();
+
+                    // Then add the data, along with the corresponding name of the data type,
+                    // so the content provider knows what kind of value is being inserted.
+                    values.put(ArtistImageEntry.COLUMN_DATE, queryTime);
+                    values.put(ArtistImageEntry.COLUMN_URI, image.url);
+                    values.put(ArtistImageEntry.COLUMN_WIDTH, image.width);
+                    values.put(ArtistImageEntry.COLUMN_HEIGHT, image.height);
+                    values.put(ArtistImageEntry.COLUMN_ARTIST_KEY, artistId);
+
+                    if (mContext.getContentResolver().insert(ArtistEntry.CONTENT_URI, values) == null)
+                    {
+                        Log.e(LOG_TAG, "Error inserting artist image with url " + image.url);
+                    }
+                }
+            }
+        }
 
         @Override
         protected Void doInBackground(String... params) {

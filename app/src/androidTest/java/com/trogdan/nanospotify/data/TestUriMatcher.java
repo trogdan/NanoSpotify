@@ -9,8 +9,8 @@ public class TestUriMatcher extends AndroidTestCase {
     public static final String TEST_HEIGHT = "200";
 
     // content://com.trogdan.nanospotify/artists/"
-    private static final Uri TEST_ARTIST_QUERY_DIR = MusicContract.ArtistQueryEntry.buildArtistQuery(TEST_ARTIST_QUERY);
-    private static final Uri TEST_ARTIST_QUERY_WITH_HEIGHT_DIR = MusicContract.ArtistQueryEntry.buildArtistQueryWithImageHeight(TEST_ARTIST_QUERY, TEST_HEIGHT);
+    private static final Uri TEST_ARTIST_QUERY_DIR = MusicContract.ArtistEntry.buildArtistQuery(TEST_ARTIST_QUERY);
+    private static final Uri TEST_ARTIST_QUERY_WITH_HEIGHT_DIR = MusicContract.ArtistEntry.buildArtistQueryWithImageHeight(TEST_ARTIST_QUERY, TEST_HEIGHT);
 
     /*
         Students: This function tests that your UriMatcher returns the correct integer value

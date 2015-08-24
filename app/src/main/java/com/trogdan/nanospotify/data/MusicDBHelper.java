@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.trogdan.nanospotify.data.MusicContract.ArtistEntry;
 import com.trogdan.nanospotify.data.MusicContract.ArtistImageEntry;
-import com.trogdan.nanospotify.data.MusicContract.ArtistQueryEntry;
 import com.trogdan.nanospotify.data.MusicContract.AlbumEntry;
 import com.trogdan.nanospotify.data.MusicContract.AlbumImageEntry;
 import com.trogdan.nanospotify.data.MusicContract.TrackEntry;
@@ -37,6 +36,7 @@ public class MusicDBHelper extends SQLiteOpenHelper {
                 ArtistEntry.COLUMN_NAME + " TEXT NOT NULL, " +
                 ArtistEntry.COLUMN_API_ID + " TEXT NOT NULL, " +
 
+                ArtistEntry.COLUMN_QUERY + " TEXT NOT NULL, " +
                 // To assure the application have just one artist entry per day
                 // let's created a UNIQUE constraint with REPLACE strategy
                 " UNIQUE (" + ArtistEntry.COLUMN_DATE + ", " +
@@ -63,23 +63,6 @@ public class MusicDBHelper extends SQLiteOpenHelper {
                 ArtistImageEntry.COLUMN_HEIGHT + ") ON CONFLICT REPLACE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_ARTIST_IMAGE_TABLE);
-
-        final String SQL_CREATE_ARTIST_QUERY_TABLE = "CREATE TABLE " + ArtistQueryEntry.TABLE_NAME + " (" +
-                ArtistQueryEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-
-                // the ID of the location entry associated with this query data
-                ArtistQueryEntry.COLUMN_ARTIST_KEY + " INTEGER NOT NULL, " +
-
-                ArtistQueryEntry.COLUMN_DATE + " INTEGER NOT NULL, " +
-                ArtistQueryEntry.COLUMN_QUERY + " TEXT NOT NULL, " +
-
-                // To assure the application have just one artist query entry per day
-                // let's created a UNIQUE constraint with REPLACE strategy
-                // TODO I doubt spotify is case-sensitive, but double-check
-                " UNIQUE (" + ArtistQueryEntry.COLUMN_DATE + ", " +
-                ArtistQueryEntry.COLUMN_QUERY +  ") ON CONFLICT REPLACE);";
-
-        sqLiteDatabase.execSQL(SQL_CREATE_ARTIST_QUERY_TABLE);
 
         final String SQL_CREATE_ALBUM_TABLE = "CREATE TABLE " + AlbumEntry.TABLE_NAME + " (" +
                 // Why AutoIncrement here, and not above?
@@ -153,7 +136,6 @@ public class MusicDBHelper extends SQLiteOpenHelper {
         // should be your top priority before modifying this method.
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ArtistEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ArtistImageEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ArtistQueryEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AlbumEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AlbumImageEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TrackEntry.TABLE_NAME);
