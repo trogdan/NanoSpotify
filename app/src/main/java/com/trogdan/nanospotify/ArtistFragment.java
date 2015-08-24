@@ -1,5 +1,7 @@
 package com.trogdan.nanospotify;
 
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,6 +11,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 
@@ -26,8 +29,10 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 
+import com.trogdan.nanospotify.data.MusicContract;
 import com.trogdan.nanospotify.data.MusicContract.ArtistImageEntry;
 import com.trogdan.nanospotify.data.MusicContract.ArtistEntry;
+import com.trogdan.nanospotify.data.MusicProvider;
 
 import java.util.ArrayList;
 
@@ -185,8 +190,12 @@ public class ArtistFragment extends Fragment {
         private void addArtists(String query, ArtistsPager artistsPager) {
             long queryTime = System.currentTimeMillis();
 
+            // TODO unique constraint seems to result in new ids for the same record.  need to debug
+            ContentValues[] bulkInsertValues = new ContentValues[artistsPager.artists.items.size()];
+            int totalImageCount = 0;
             // Insert the new query results
             for (int i = 0; i < artistsPager.artists.items.size(); i++) {
+
                 Artist artist = artistsPager.artists.items.get(i);
 
                 // Now that the content provider is set up, inserting rows of data is pretty simple.
@@ -200,15 +209,24 @@ public class ArtistFragment extends Fragment {
                 values.put(ArtistEntry.COLUMN_NAME, artist.name);
                 values.put(ArtistEntry.COLUMN_QUERY, query);
 
-                // Finally, insert data into the database.
-                Uri insertedUri = mContext.getContentResolver().insert(ArtistEntry.CONTENT_URI, values);
+                bulkInsertValues[i] = values;
+                totalImageCount += artist.images.size();
+            }
 
-                long artistId = ContentUris.parseId(insertedUri);
+            mContext.getContentResolver().bulkInsert(ArtistEntry.CONTENT_URI, bulkInsertValues);
+
+            ContentValues[] imageInsertValues = new ContentValues[totalImageCount];
+            int valueOffset = 0;
+            // Insert the new query results
+            for (int i = 0; i < artistsPager.artists.items.size(); i++) {
+
+                Artist artist = artistsPager.artists.items.get(i);
+                ContentValues artistValues = bulkInsertValues[i];
 
                 for (int j = 0; j < artist.images.size(); j++) {
                     Image image = artist.images.get(j);
 
-                    values = new ContentValues();
+                    ContentValues values = new ContentValues();
 
                     // Then add the data, along with the corresponding name of the data type,
                     // so the content provider knows what kind of value is being inserted.
@@ -216,14 +234,12 @@ public class ArtistFragment extends Fragment {
                     values.put(ArtistImageEntry.COLUMN_URI, image.url);
                     values.put(ArtistImageEntry.COLUMN_WIDTH, image.width);
                     values.put(ArtistImageEntry.COLUMN_HEIGHT, image.height);
-                    values.put(ArtistImageEntry.COLUMN_ARTIST_KEY, artistId);
+                    values.put(ArtistImageEntry.COLUMN_ARTIST_KEY, (long) artistValues.get(ArtistEntry._ID));
 
-                    if (mContext.getContentResolver().insert(ArtistImageEntry.CONTENT_URI, values) == null)
-                    {
-                        Log.e(LOG_TAG, "Error inserting artist image with url " + image.url);
-                    }
+                    imageInsertValues[valueOffset++] = values;
                 }
             }
+            mContext.getContentResolver().bulkInsert(ArtistImageEntry.CONTENT_URI, imageInsertValues);
         }
 
         @Override
@@ -240,11 +256,14 @@ public class ArtistFragment extends Fragment {
                 public void success(ArtistsPager artistsPager, Response response) {
                     Log.d(LOG_TAG, "Artist query success: " + artistsPager.artists.total);
 
+                    // TODO
+                    //addArtists(query, artistsPager);
+
                     // Populating the adapter with query results.
                     m_artistAdapter.clear();
                     for (int i = 0; i < artistsPager.artists.items.size(); i++) {
                         m_artistAdapter.add(artistsPager.artists.items.get(i));
-                        addArtists(query, artistsPager);
+
                     }
 
                     // Just display a toast that there were no results for the artist, per the
@@ -255,6 +274,7 @@ public class ArtistFragment extends Fragment {
                                 R.string.artist_fail,
                                 Toast.LENGTH_LONG).show();
                     }
+
                 }
 
                 @Override

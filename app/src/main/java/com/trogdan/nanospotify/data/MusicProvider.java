@@ -266,24 +266,40 @@ public class MusicProvider extends ContentProvider {
     public int bulkInsert(Uri uri, ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
+        int returnCount = 0;
         switch (match) {
-            // TODO
-//            case WEATHER:
-//                db.beginTransaction();
-//                int returnCount = 0;
-//                try {
-//                    for (ContentValues value : values) {
-//                        long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, value);
-//                        if (_id != -1) {
-//                            returnCount++;
-//                        }
-//                    }
-//                    db.setTransactionSuccessful();
-//                } finally {
-//                    db.endTransaction();
-//                }
-//                getContext().getContentResolver().notifyChange(uri, null);
-//                return returnCount;
+            case ARTIST:
+                db.beginTransaction();
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(MusicContract.ArtistEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            value.put(MusicContract.ArtistEntry._ID, _id);
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            case ARTIST_IMAGE:
+                db.beginTransaction();
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(MusicContract.ArtistImageEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            value.put(MusicContract.ArtistImageEntry._ID, _id);
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
             default:
                 return super.bulkInsert(uri, values);
         }

@@ -37,9 +37,9 @@ public class MusicDBHelper extends SQLiteOpenHelper {
                 ArtistEntry.COLUMN_API_ID + " TEXT NOT NULL, " +
 
                 ArtistEntry.COLUMN_QUERY + " TEXT NOT NULL, " +
-                // To assure the application have just one artist entry per day
+                // To assure the application have just one artist entry
                 // let's created a UNIQUE constraint with REPLACE strategy
-                " UNIQUE (" + ArtistEntry.COLUMN_DATE + ", " +
+                " UNIQUE (" +
                 ArtistEntry.COLUMN_API_ID + ") ON CONFLICT REPLACE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_ARTIST_TABLE);
@@ -57,7 +57,7 @@ public class MusicDBHelper extends SQLiteOpenHelper {
 
                 // To assure the application have just one artist image entry per day
                 // let's created a UNIQUE constraint with REPLACE strategy
-                " UNIQUE (" + ArtistImageEntry.COLUMN_DATE + ", " +
+                " UNIQUE (" +
                 ArtistImageEntry.COLUMN_ARTIST_KEY + ", " +
                 ArtistImageEntry.COLUMN_WIDTH + ", " +
                 ArtistImageEntry.COLUMN_HEIGHT + ") ON CONFLICT REPLACE);";

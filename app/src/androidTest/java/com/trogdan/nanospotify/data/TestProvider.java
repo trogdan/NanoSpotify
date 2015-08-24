@@ -14,6 +14,10 @@ import android.util.Log;
 import com.trogdan.nanospotify.data.MusicContract.ArtistEntry;
 import com.trogdan.nanospotify.data.MusicContract.ArtistImageEntry;
 
+import java.util.Random;
+
+import kaaes.spotify.webapi.android.models.Artist;
+
 
 /**
  * Created by dan on 8/23/15.
@@ -305,5 +309,73 @@ public class TestProvider extends AndroidTestCase{
         );
         TestUtilities.validateCursor("testInsertReadProvider.  Error validating joined Data.",
                 queryCursor, testValues);
+    }
+
+    static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    static Random rnd = new Random();
+
+    static private String randomString( int len ){
+        StringBuilder sb = new StringBuilder( len );
+        for( int i = 0; i < len; i++ )
+            sb.append( AB.charAt( rnd.nextInt(AB.length()) ) );
+        return sb.toString();
+    }
+
+    static private final int BULK_INSERT_RECORDS_TO_INSERT = 10;
+    static private final long CURRENT_TEST_DATE = System.currentTimeMillis();
+    static private ContentValues[] createBulkInsertArtistValues() {
+        ContentValues[] returnContentValues = new ContentValues[BULK_INSERT_RECORDS_TO_INSERT];
+
+        for ( int i = 0; i < BULK_INSERT_RECORDS_TO_INSERT; i++ ) {
+            ContentValues testValues = new ContentValues();
+            testValues.put(MusicContract.ArtistEntry.COLUMN_NAME, randomString(i));
+            testValues.put(MusicContract.ArtistEntry.COLUMN_API_ID, randomString(10));
+            testValues.put(MusicContract.ArtistEntry.COLUMN_DATE, CURRENT_TEST_DATE);
+            testValues.put(MusicContract.ArtistEntry.COLUMN_QUERY, TestUtilities.TEST_QUERY);
+
+            returnContentValues[i] = testValues;
+        }
+        return returnContentValues;
+    }
+
+    public void testBulkInsert() {
+
+        ContentValues[] bulkInsertContentValues = createBulkInsertArtistValues();
+
+        // Register a content observer for our bulk insert.
+        TestUtilities.TestContentObserver artistObserver = TestUtilities.getTestContentObserver();
+        mContext.getContentResolver().registerContentObserver(ArtistEntry.CONTENT_URI, true, artistObserver);
+
+        int insertCount = mContext.getContentResolver().bulkInsert(ArtistEntry.CONTENT_URI, bulkInsertContentValues);
+
+        // If this fails, it means that you most-likely are not calling the
+        // getContext().getContentResolver().notifyChange(uri, null); in your BulkInsert
+        // ContentProvider method.
+        artistObserver.waitForNotificationOrFail();
+        mContext.getContentResolver().unregisterContentObserver(artistObserver);
+
+        assertEquals(insertCount, BULK_INSERT_RECORDS_TO_INSERT);
+
+        // A cursor is your primary interface to the query results.
+        Cursor cursor = mContext.getContentResolver().query(
+                ArtistEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null
+        );
+
+        // we should have as many records in the database as we've inserted
+        assertEquals(cursor.getCount(), BULK_INSERT_RECORDS_TO_INSERT);
+
+        // and let's make sure they match the ones we created
+        cursor.moveToFirst();
+        for ( int i = 0; i < BULK_INSERT_RECORDS_TO_INSERT; i++, cursor.moveToNext() ) {
+            TestUtilities.validateCurrentRecord("testBulkInsert.  Error validating ArtistEntry " + i,
+                    cursor, bulkInsertContentValues[i]);
+        }
+
+
+        cursor.close();
     }
 }
