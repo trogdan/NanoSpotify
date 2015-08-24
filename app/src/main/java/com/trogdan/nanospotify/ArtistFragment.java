@@ -198,6 +198,7 @@ public class ArtistFragment extends Fragment {
                 values.put(ArtistEntry.COLUMN_DATE, queryTime);
                 values.put(ArtistEntry.COLUMN_API_ID, artist.id);
                 values.put(ArtistEntry.COLUMN_NAME, artist.name);
+                values.put(ArtistEntry.COLUMN_QUERY, query);
 
                 // Finally, insert data into the database.
                 Uri insertedUri = mContext.getContentResolver().insert(ArtistEntry.CONTENT_URI, values);
@@ -217,7 +218,7 @@ public class ArtistFragment extends Fragment {
                     values.put(ArtistImageEntry.COLUMN_HEIGHT, image.height);
                     values.put(ArtistImageEntry.COLUMN_ARTIST_KEY, artistId);
 
-                    if (mContext.getContentResolver().insert(ArtistEntry.CONTENT_URI, values) == null)
+                    if (mContext.getContentResolver().insert(ArtistImageEntry.CONTENT_URI, values) == null)
                     {
                         Log.e(LOG_TAG, "Error inserting artist image with url " + image.url);
                     }
@@ -233,7 +234,8 @@ public class ArtistFragment extends Fragment {
                 return null;
             }
 
-            Utility.getSpotifyService().searchArtists(params[0], new Callback<ArtistsPager>() {
+            final String query = params[0];
+            Utility.getSpotifyService().searchArtists(query, new Callback<ArtistsPager>() {
                 @Override
                 public void success(ArtistsPager artistsPager, Response response) {
                     Log.d(LOG_TAG, "Artist query success: " + artistsPager.artists.total);
@@ -242,6 +244,7 @@ public class ArtistFragment extends Fragment {
                     m_artistAdapter.clear();
                     for (int i = 0; i < artistsPager.artists.items.size(); i++) {
                         m_artistAdapter.add(artistsPager.artists.items.get(i));
+                        addArtists(query, artistsPager);
                     }
 
                     // Just display a toast that there were no results for the artist, per the

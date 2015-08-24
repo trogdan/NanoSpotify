@@ -23,7 +23,6 @@ import java.util.Set;
 public class TestUtilities extends AndroidTestCase {
     static final String TEST_QUERY = "marlo";
     static final long TEST_HEIGHT = 400;
-    static final long TEST_DATE = 1419033600L;  // December 20th, 2014
 
     static void validateCursor(String error, Cursor valueCursor, ContentValues expectedValues) {
         assertTrue("Empty cursor returned. " + error, valueCursor.moveToFirst());
@@ -51,7 +50,7 @@ public class TestUtilities extends AndroidTestCase {
         testValues.put(MusicContract.ArtistEntry.COLUMN_NAME, "MarLo");
         testValues.put(MusicContract.ArtistEntry.COLUMN_API_ID, "ABCD1234EF56");
         testValues.put(MusicContract.ArtistEntry.COLUMN_DATE, System.currentTimeMillis() / 1000);
-        testValues.put(MusicContract.ArtistEntry.COLUMN_QUERY, "marlo");
+        testValues.put(MusicContract.ArtistEntry.COLUMN_QUERY, TEST_QUERY);
 
         return testValues;
     }
