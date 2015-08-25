@@ -44,12 +44,6 @@ public class TrackActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if(id == R.id.action_open_player)
-        {
-            fragment.showPlayerDialog();
-        }
 
         return super.onOptionsItemSelected(item);
     }
