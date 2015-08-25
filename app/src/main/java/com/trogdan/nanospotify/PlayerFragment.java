@@ -39,6 +39,7 @@ public class PlayerFragment extends DialogFragment {
     public static final String PLAYERPLAYTRACK_ARG = "PFTARG";
     public static final String PLAYERSEEK_ARG = "PSARG";
     public static final String PLAYERCHANGE_ARG = "PCARG";
+    public static final String PLAYERCURRENTTRACK_ARG = "PCTARG";
 
     private ViewHolder mViewHolder;
     private ArrayList<ParcelableTrack> mTrackList;
@@ -184,7 +185,15 @@ public class PlayerFragment extends DialogFragment {
             }
         });
 
-        final Bundle args = getArguments();
+        Bundle args;
+        if(savedInstanceState == null) {
+            args = getArguments();
+        }
+        else
+        {
+            args = savedInstanceState.getBundle(PLAYERS_ARGS);
+        }
+
         if (args != null) {
             mCurrentTrack = args.getInt(PLAYERPLAYTRACK_ARG);
             mTrackList = args.getParcelableArrayList(PLAYERTRACKS_ARG);
@@ -202,9 +211,7 @@ public class PlayerFragment extends DialogFragment {
             // Only include m_trackList if different
             if (args.getBoolean(PLAYERCHANGE_ARG)) {
                 i.putExtras(args);
-            }
-            else
-            {
+            } else {
                 i.putExtra(PLAYERPLAYTRACK_ARG, mCurrentTrack);
             }
             getActivity().startService(i);
@@ -264,8 +271,9 @@ public class PlayerFragment extends DialogFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
-        outState.putBundle(PLAYERS_ARGS, getArguments());
+        Bundle args = getArguments();
+        args.putInt(PLAYERPLAYTRACK_ARG, mCurrentTrack);
+        outState.putBundle(PLAYERS_ARGS, args);
     }
 
     private void updateViewsFromTrack(ParcelableTrack track)
