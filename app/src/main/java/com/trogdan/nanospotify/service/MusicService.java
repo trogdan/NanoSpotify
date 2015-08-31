@@ -35,6 +35,7 @@ import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.trogdan.nanospotify.PlayerActivity;
 import com.trogdan.nanospotify.PlayerFragment;
 import com.trogdan.nanospotify.R;
 import com.trogdan.nanospotify.MainActivity;
@@ -68,6 +69,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
     public static final String ACTION_PREVIOUS = "com.trogdan.nanospotify.musicservice.action.PREVIOUS";
     public static final String ACTION_SEEK = "com.trogdan.nanospotify.musicservice.action.SEEK";
     public static final String ACTION_URLS = "com.trogdan.nanospotify.musicservice.action.URLS";
+    public static final String ACTION_TRACKS_REQUEST = "com.trogdan.nanospotify.musicservice.action.TRACKS_REQUEST";
 
     // These are local broadcasts used to notify our UI of current media service state.
     public static final String STATUS_SERVICE = "com.trogdan.noanospotify.musicservice.status";
@@ -186,6 +188,8 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
 
         // Create the mBroadcaster to send state back to UI
         mBroadcaster = LocalBroadcastManager.getInstance(this);
+
+        PlayerActivity.isServiceLaunched = true;
     }
 
     /**
@@ -205,6 +209,7 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
         else if (action.equals(ACTION_STOP)) processStopRequest();
         else if (action.equals(ACTION_SEEK)) processSeekRequest(intent);
         else if (action.equals(ACTION_URLS)) processAddRequest(intent);
+        else if (action.equals(ACTION_TRACKS_REQUEST)) processTracksRequest();
 
         // After all that's said and done, tell the UI which track we are currently on
 
@@ -344,6 +349,18 @@ public class MusicService extends Service implements OnCompletionListener, OnPre
 
         }
     }
+
+    void processTracksRequest() {
+        if (mTrackList != null) {
+            final Intent i = new Intent(STATUS_SERVICE);
+            final Bundle args = new Bundle();
+            args.putInt(PlayerFragment.PLAYERPLAYTRACK_ARG, mCurrentTrack);
+            args.putParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG, mTrackList);
+            i.putExtras(args);
+            mBroadcaster.sendBroadcast(i);
+        }
+    }
+
 
     /**
      * Releases resources used by the service for playback. This includes the "foreground service"

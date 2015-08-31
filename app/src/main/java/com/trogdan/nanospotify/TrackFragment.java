@@ -1,10 +1,13 @@
 package com.trogdan.nanospotify;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -81,11 +84,22 @@ public class TrackFragment extends Fragment {
                         final ParcelableTrack parcelableTrack = new ParcelableTrack(track);
                         m_trackList.add(parcelableTrack);
                     }
-                    showPlayerDialog(m_trackList, position, true);
+                    PlayerActivity.showPlayerDialog(
+                            (ActionBarActivity)getActivity(),
+                            m_trackList,
+                            m_currentTrack,
+                            true,
+                            m_twoPane
+                    );
                 }
                 else
-                    showPlayerDialog(m_trackList, position, false);
-
+                    PlayerActivity.showPlayerDialog(
+                            (ActionBarActivity) getActivity(),
+                            m_trackList,
+                            m_currentTrack,
+                            false,
+                            m_twoPane
+                    );
             }
         });
 
@@ -95,32 +109,6 @@ public class TrackFragment extends Fragment {
         }
 
         return rootView;
-    }
-
-    private void showPlayerDialog(ArrayList<ParcelableTrack> trackList, int currentTrack, boolean changed) {
-
-        final Bundle args = new Bundle();
-        args.putParcelableArrayList(PlayerFragment.PLAYERTRACKS_ARG, trackList);
-        args.putInt(PlayerFragment.PLAYERPLAYTRACK_ARG, currentTrack);
-        args.putBoolean(PlayerFragment.PLAYERCHANGE_ARG, changed);
-
-        if (m_twoPane) {
-            final FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-
-            final PlayerFragment playerFragment = new PlayerFragment();
-            playerFragment.setArguments(args);
-            // The device is using a large layout, so show the fragment as a dialog
-            playerFragment.show(fragmentManager, PlayerFragment.PLAYERFRAGMENT_TAG);
-        } else {
-            Intent intent = new Intent(getActivity(), PlayerActivity.class);
-            intent.putExtras(args);
-            startActivity(intent);
-        }
-    }
-
-    public void showPlayerDialog()
-    {
-        showPlayerDialog(m_trackList, m_currentTrack, false);
     }
 
     public void getTracks(String artistId) {

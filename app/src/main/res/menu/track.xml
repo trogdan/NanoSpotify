@@ -1,4 +1,12 @@
-<menu
-    xmlns:tools="http://schemas.android.com/tools"
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.trogdan.nanospotify.TrackActivity">
+
+    <item
+        android:id="@+id/action_open_player"
+        app:showAsAction="always"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="@string/action_open_player"
+        android:orderInCategory="10" />
 </menu>

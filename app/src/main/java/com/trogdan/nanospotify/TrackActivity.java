@@ -44,6 +44,12 @@ public class TrackActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_open_player) {
+            if (PlayerActivity.isServiceLaunched)
+                PlayerActivity.showPlayerDialog(this, null, PlayerActivity.PLAYER_CURRENT_TRACK, false, false);
+        }
 
         return super.onOptionsItemSelected(item);
     }

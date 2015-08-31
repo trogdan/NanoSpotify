@@ -104,6 +104,15 @@ public class PlayerFragment extends DialogFragment {
                     updateViewsFromTrack(mTrackList.get(mCurrentTrack));
                     setPlaybackButton(true);
                 }
+                if (intent.hasExtra(PLAYERPLAYTRACK_ARG) && intent.hasExtra(PLAYERTRACKS_ARG)) {
+                    // Oh hey
+                    Bundle args = intent.getExtras();
+                    mCurrentTrack = args.getInt(PLAYERPLAYTRACK_ARG);
+                    mTrackList = args.getParcelableArrayList(PLAYERTRACKS_ARG);
+
+                    updateViewsFromTrack(mTrackList.get(mCurrentTrack));
+                    setPlaybackButton(true);
+                }
             }
         };
 
@@ -198,29 +207,35 @@ public class PlayerFragment extends DialogFragment {
             mCurrentTrack = args.getInt(PLAYERPLAYTRACK_ARG);
             mTrackList = args.getParcelableArrayList(PLAYERTRACKS_ARG);
 
-            final ParcelableTrack track = mTrackList.get(mCurrentTrack);
-
-            updateViewsFromTrack(null);
-
-            setPlaybackButton(true);
-
-            // Send an intent with the URIs of the songs to load. This is expected by MusicService.
-            final Intent i = new Intent(getActivity(), MusicService.class);
-            i.setAction(MusicService.ACTION_URLS);
-
-            // Only include m_trackList if different
-            if (args.getBoolean(PLAYERCHANGE_ARG)) {
-                i.putExtras(args);
-            } else {
-                i.putExtra(PLAYERPLAYTRACK_ARG, mCurrentTrack);
+            if(mCurrentTrack == PlayerActivity.PLAYER_CURRENT_TRACK &&
+                    mTrackList == null)
+            {
+                // Let's ask the service for what's playing
+                final Intent i = new Intent(getActivity(), MusicService.class);
+                i.setAction(MusicService.ACTION_TRACKS_REQUEST);
+                getActivity().startService(i);
             }
-            getActivity().startService(i);
+            else {
+                updateViewsFromTrack(null);
 
-            // And start
-            i.setAction(MusicService.ACTION_PLAY);
-            getActivity().startService(i);
+                setPlaybackButton(true);
 
-            mPreviousList = mTrackList;
+                // Send an intent with the URIs of the songs to load. This is expected by MusicService.
+                final Intent i = new Intent(getActivity(), MusicService.class);
+                i.setAction(MusicService.ACTION_URLS);
+
+                // Only include m_trackList if different
+                if (args.getBoolean(PLAYERCHANGE_ARG)) {
+                    i.putExtras(args);
+                } else {
+                    i.putExtra(PLAYERPLAYTRACK_ARG, mCurrentTrack);
+                }
+                getActivity().startService(i);
+
+                // And start
+                i.setAction(MusicService.ACTION_PLAY);
+                getActivity().startService(i);
+            }
         }
 
         setStyle(DialogFragment.STYLE_NORMAL, R.style.PlayerDialog);
